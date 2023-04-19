@@ -1,2 +1,4 @@
 .env
-/data/raw_data/
+/data/
+__pycache__/
+*.ipynb
