@@ -4,7 +4,13 @@ import matplotlib.pyplot as plt
 import os
 import functools as ft
 import itertools
+import argparse
 from libarary import preprocess
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--drop', default=0.01, help='dropping threshold')
+parser.add_argument('--window', default=100, help="rolling window")
+args = parser.parse_args()
 
 # 合併表格
 raw_data_path = os.path.join(os.path.abspath(''), 'data/raw_data')
@@ -24,12 +30,12 @@ for ticker in etf50_list:
     stock_list[ticker] = ticker_df
     
 # 填補缺失值、刪除 stock_id 欄位
-stock_list, removed_list = preprocess.removeNAvalue(stock_list, 0.01)
+stock_list, removed_list = preprocess.removeNAvalue(stock_list, args.drop)
 for key in stock_list.keys():
     stock_list[key] = stock_list[key].drop('stock_id', axis=1)
 
 # 移動窗口取相關係數
-window_size = 100
+window_size = args.window
 comb = list(itertools.combinations(stock_list.keys(), 2))
 for (ticker1, ticker2) in comb:
     corr = pd.DataFrame(stock_list[ticker1].rolling(window_size).corr(stock_list[ticker2]))
