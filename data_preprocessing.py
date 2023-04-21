@@ -10,6 +10,7 @@ from libarary import preprocess
 parser = argparse.ArgumentParser()
 parser.add_argument('--drop', default=0.01, help='dropping threshold')
 parser.add_argument('--window', default=100, help="rolling window")
+parser.add_argument('--stride', default=100, help="stride")
 args = parser.parse_args()
 
 # 合併表格
@@ -36,8 +37,15 @@ for key in stock_list.keys():
 
 # 移動窗口取相關係數
 window_size = args.window
+stride = args.stride
 comb = list(itertools.combinations(stock_list.keys(), 2))
 for (ticker1, ticker2) in comb:
-    corr = pd.DataFrame(stock_list[ticker1].rolling(window_size).corr(stock_list[ticker2]))
-    corr.drop(corr.index[:100], inplace=True)
+    corr = pd.DataFrame(stock_list[ticker1].rolling(window=window_size).corr(stock_list[ticker2]))
+    corr.drop(corr.index[:window_size-1], inplace=True)
+    corr = corr.reset_index(drop=False)
+    corr = corr[corr.index % (stride - 1) == 0]
+    if 'index' in corr.columns:
+        corr.set_index('index', inplace=True)
+    else:
+        corr.set_index('date', inplace=True)
     corr.to_csv(f'./data/preprocessed_data/{ticker1}_{ticker2}.csv', index_label='date')
