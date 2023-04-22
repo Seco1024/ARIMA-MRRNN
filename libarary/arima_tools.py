@@ -1,7 +1,13 @@
 import numpy as np 
 import pandas as pd
+import matplotlib.pyplot as plt
 from statsmodels.tsa.stattools import adfuller
-import argparse
+from statsmodels.tsa.arima_model import ARIMA, ARIMAResults, ARMA, ARMAResults
+from statsmodels.tsa.statespace.varmax import VARMAX, VARMAXResults
+from pmdarima.utils import diff_inv
+
+import warnings
+warnings.filterwarnings("ignore")
 
 
 def adf_test(series):
@@ -10,3 +16,60 @@ def adf_test(series):
         return True
     else:      # Data has a unit root and is non-stationary
         return False
+    
+def getOrder(order_dict):
+    counter = {}
+    for key, lst in order_dict.items():
+        if lst[0] not in counter.keys():
+            counter[lst[0]] = 1
+        else:
+            counter[lst[0]] += 1
+    max_order = max(counter, key=lambda k:counter[k])
+    return max_order
+
+def train_set_predict(result, train):
+    train_predict = result.predict(start=0, end=len(train)-1, alpha=0.05)
+    train_predict = pd.DataFrame(train_predict)
+    train_predict['date'] = pd.DatetimeIndex(train.index)
+    train_predict.set_index('date', inplace=True)
+    return train_predict
+
+def test_set_forecast(result, test):
+    test_forecast = result.forecast(len(test))
+    test_forecast = pd.DataFrame(test_forecast)
+    test_forecast['date'] = pd.DatetimeIndex(test.index)
+    test_forecast.set_index('date', inplace=True)
+    return test_forecast
+
+def indiff(forecast, origin, max_diff, isTest, nobs):
+    for col in forecast.columns:
+        inversed = diff_inv(forecast[col], 1, max_diff)
+        if isTest:
+            inversed = inversed + origin[col].iloc[-nobs-1]
+        else:
+            inversed = inversed + origin[col].iloc[max_diff-1]
+        forecast[col] = inversed[max_diff:]
+    return forecast
+
+def VARMA_visualize(origin, predict, ticker1, ticker2, varma_order, isTest, isTrain, nobs):
+    for col in predict.columns:
+        if isTest:
+            title = f'Prediction on {col} (test):{ticker1}-{ticker2}'
+        elif isTrain:
+            title = f'Prediction on {col} (train):{ticker1}-{ticker2}'
+        else:
+            title = f'Prediction on {col} (whole):{ticker1}-{ticker2}'
+        ylabel = f'Correlation Coefficient on {col}'
+        xlabel=''
+
+        fcst = predict[col].rename(f'VARMA {varma_order} Prediction')
+        ax = fcst.plot(legend=True, figsize=(10,5),title=title)
+        if isTest:
+            origin[col].iloc[-nobs:].plot(legend=True)
+        elif isTrain:
+            origin[col].iloc[:-nobs].plot(legend=True)
+        else:
+            origin[col].plot(legend=True)
+        ax.autoscale(axis='x',tight=True)
+        ax.set(xlabel=xlabel, ylabel=ylabel)
+        plt.show()

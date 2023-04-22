@@ -36,8 +36,8 @@ for key in stock_list.keys():
     stock_list[key] = stock_list[key].drop('stock_id', axis=1)
 
 # 移動窗口取相關係數
-window_size = args.window
-stride = args.stride
+window_size = int(args.window)
+stride = int(args.stride)
 comb = list(itertools.combinations(stock_list.keys(), 2))
 for (ticker1, ticker2) in comb:
     corr = pd.DataFrame(stock_list[ticker1].rolling(window=window_size).corr(stock_list[ticker2]))
