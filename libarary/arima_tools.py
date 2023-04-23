@@ -51,19 +51,19 @@ def indiff(forecast, origin, max_diff, isTest, nobs):
         forecast[col] = inversed[max_diff:]
     return forecast
 
-def VARMA_visualize(origin, predict, ticker1, ticker2, varma_order, isTest, isTrain, nobs):
+def visualize(origin, predict, ticker1, ticker2, model, isTest, isTrain, nobs):
     for col in predict.columns:
         if isTest:
-            title = f'Prediction on {col} (test):{ticker1}-{ticker2}'
+            title = f'{model} Prediction on {col} (test):{ticker1}-{ticker2}'
         elif isTrain:
-            title = f'Prediction on {col} (train):{ticker1}-{ticker2}'
+            title = f'{model} Prediction on {col} (train):{ticker1}-{ticker2}'
         else:
-            title = f'Prediction on {col} (whole):{ticker1}-{ticker2}'
+            title = f'{model} Prediction on {col} (whole):{ticker1}-{ticker2}'
         ylabel = f'Correlation Coefficient on {col}'
         xlabel=''
 
-        fcst = predict[col].rename(f'VARMA {varma_order} Prediction')
-        ax = fcst.plot(legend=True, figsize=(10,5),title=title)
+        fcst = predict[col].rename(f'{model} Prediction')
+        ax = fcst.plot(legend=True, figsize=(8,5),title=title)
         if isTest:
             origin[col].iloc[-nobs:].plot(legend=True)
         elif isTrain:
@@ -72,4 +72,6 @@ def VARMA_visualize(origin, predict, ticker1, ticker2, varma_order, isTest, isTr
             origin[col].plot(legend=True)
         ax.autoscale(axis='x',tight=True)
         ax.set(xlabel=xlabel, ylabel=ylabel)
+        label = 'test' if isTest else 'train' if isTrain else 'prediction'
         plt.show()
+        # plt.savefig(f'./data/plot/after_VARMA/{ticker1}-{ticker2}/{col}-{label}.png')
