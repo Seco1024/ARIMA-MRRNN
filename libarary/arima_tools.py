@@ -73,5 +73,5 @@ def visualize(origin, predict, ticker1, ticker2, model, isTest, isTrain, nobs):
         ax.autoscale(axis='x',tight=True)
         ax.set(xlabel=xlabel, ylabel=ylabel)
         label = 'test' if isTest else 'train' if isTrain else 'prediction'
+        plt.savefig(f'./data/plot/after_{model}/{ticker1}-{ticker2}-{label}-{col}.png')
         plt.show()
-        # plt.savefig(f'./data/plot/after_VARMA/{ticker1}-{ticker2}/{col}-{label}.png')
