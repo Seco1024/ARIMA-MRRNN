@@ -11,10 +11,10 @@ mkdir Technical
 cd ../VARMA_ARIMA
 mkdir ./after_ARIMA
 mkdir ./after_VARMA
-mkdir ./error
+mkdir ./residual
 cd ../plot
 mkdir ./after_ARIMA
 mkdir ./after_VARMA
 cd ../../
-
+pip install -r requirements.txt
 python raw_data_collecting

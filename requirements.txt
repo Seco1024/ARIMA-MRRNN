@@ -1,0 +1,16 @@
+beautifulsoup4
+keras
+keras-preprocessing
+matplotlib
+numpy
+pandas  
+pmdarima==2.0.3              
+pyramid==2.0.1                   
+python-dateutil         
+python-dotenv                
+scikit-learn  
+statsmodels==0.13.5
+tqdm
+urllib3
+yaml
+yfinance==0.2.14

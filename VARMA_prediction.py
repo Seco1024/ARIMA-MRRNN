@@ -137,7 +137,7 @@ for col in arima_prediction.columns:
 # 輸出 error
 error_mean = pd.DataFrame(df_error.mean())
 error_mean = error_mean.transpose()
-error_mean.to_csv(f'./data/VARMA_ARIMA/error/{args.filename}')
+error_mean.to_csv(f'./data/VARMA_ARIMA/residual/{args.filename}')
 
 # 以一定概率生成圖表
 
