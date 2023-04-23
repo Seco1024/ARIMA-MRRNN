@@ -69,12 +69,7 @@ def visualize(origin, predict, ticker1, ticker2, model, isTest, isTrain, nobs):
 
         fcst = predict[col].rename(f'{model} Prediction')
         ax = fcst.plot(legend=True, figsize=(8,5),title=title)
-        if isTest:
-            origin[col].iloc[-nobs:].plot(legend=True)
-        elif isTrain:
-            origin[col].iloc[:-nobs].plot(legend=True)
-        else:
-            origin[col].plot(legend=True)
+        origin[col].plot(legend=True)
         ax.autoscale(axis='x',tight=True)
         ax.set(xlabel=xlabel, ylabel=ylabel)
         label = 'test' if isTest else 'train' if isTrain else 'prediction'
