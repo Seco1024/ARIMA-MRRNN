@@ -64,10 +64,10 @@ ticker_df = pd.DataFrame(ticker_data["data"])
 result_df = pd.merge(ticker_df, etf50_df, how="inner", on=["stock_name"])
 result_df = result_df.drop_duplicates(subset=['stock_name'])
 result_df = result_df.reset_index(drop=True)
-result_df.to_csv("./raw_data/etf50_tickers.csv", index=False, header=True, encoding='big5')
+result_df.to_csv("./data/raw_data/etf50_tickers.csv", index=False, header=True, encoding='big5')
 
 # get technical data
-etf50_df = pd.read_csv("./raw_data/etf50.csv", encoding="big5")
+etf50_df = pd.read_csv("./data/raw_data/etf50_tickers.csv", encoding="big5")
 individual_technical_dataset = []
 
 for id in etf50_df["stock_id"]:
@@ -82,12 +82,12 @@ for id in etf50_df["stock_id"]:
     tmp_df = pd.DataFrame(technical_data["data"])
     tmp_df['date'] = pd.to_datetime(tmp_df['date'], format='%Y-%m-%d')
     tmp_df.set_index('date', inplace=True)
-    tmp_df.to_csv(f'./raw_data/Technical/{id}_technical.csv')
+    tmp_df.to_csv(f'./data/raw_data/Technical/{id}_technical.csv')
     individual_technical_dataset.append(tmp_df)
 
 technical_df = pd.concat(individual_technical_dataset)
 technical_df = technical_df.reset_index(drop=True)
-technical_df.to_csv('./raw_data/Technical/etf50_technical.csv')
+technical_df.to_csv('./data/raw_data/Technical/etf50_technical.csv')
 
 # get margin and short sell data
 individual_mtss_dataset = []
@@ -104,12 +104,12 @@ for id in etf50_df["stock_id"]:
     tmp_df = tmp_df.loc[:, ["date", "stock_id", "MarginPurchaseBuy", "MarginPurchaseSell", "ShortSaleBuy", "ShortSaleSell"]]
     tmp_df['date'] = pd.to_datetime(tmp_df['date'], format='%Y-%m-%d')
     tmp_df.set_index('date', inplace=True)
-    tmp_df.to_csv(f'./raw_data/Margin_Short_Sell/{id}_mtss.csv')
+    tmp_df.to_csv(f'./data/raw_data/Margin_Short_Sell/{id}_mtss.csv')
     individual_mtss_dataset.append(tmp_df)
 
 mtss_df = pd.concat(individual_mtss_dataset)
 mtss_df = mtss_df.reset_index(drop=True)
-mtss_df.to_csv('./raw_data/Margin_Short_Sell/etf50_mtss.csv')
+mtss_df.to_csv('./data/raw_data/Margin_Short_Sell/etf50_mtss.csv')
 
 # get major investor institution data
 individual_mii_dataset = []
@@ -145,11 +145,11 @@ for id in etf50_df["stock_id"]:
     pivot_df = pivot_df.reset_index()
     pivot_df['date'] = pd.to_datetime(pivot_df['date'], format='%Y-%m-%d')
     pivot_df.set_index('date', inplace=True)
-    pivot_df.to_csv(f'./raw_data/Major_Investor/{id}_mii.csv')
+    pivot_df.to_csv(f'./data/raw_data/Major_Investor/{id}_mii.csv')
     individual_mii_dataset.append(pivot_df)
 
 mii_df = pd.concat(individual_mii_dataset)     
 mii_df = mii_df.reset_index(drop=True)
-mii_df.to_csv('./raw_data/Major_Investor/etf50_mii.csv')
+mii_df.to_csv('./data/raw_data/Major_Investor/etf50_mii.csv')
 
 print("Complete Data Collecting")
