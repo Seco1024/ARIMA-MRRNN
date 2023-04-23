@@ -101,8 +101,8 @@ for col, lst in order_dict.items():
 
     test_start=len(train)
     test_end=len(train)+len(test)-1
-    train_start=1
-    train_end=len(train)
+    train_start=train.index[0]
+    train_end=train.index[len(train)-1]
 
     arima_col_test_predictions = arima_result.predict(start=test_start, end=test_end, dynamic=False, typ='levels').rename(f'ARIMA{arima_order} Test Forecast')
     arima_test_forecast.loc[:, col] = arima_col_test_predictions
