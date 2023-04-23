@@ -9,7 +9,7 @@ from statsmodels.tsa.statespace.varmax import VARMAX, VARMAXResults
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from pmdarima import auto_arima
 from statsmodels.tools.eval_measures import rmse
-from libarary import arima_tools
+from lib import arima_tools
 from pmdarima.utils import diff_inv
 
 import argparse

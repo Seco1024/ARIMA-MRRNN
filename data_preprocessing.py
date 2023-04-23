@@ -5,7 +5,7 @@ import os
 import functools as ft
 import itertools
 import argparse
-from libarary import preprocess
+from lib import preprocess
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--drop', default=0.01, help='dropping threshold')
