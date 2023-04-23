@@ -6,6 +6,7 @@ if [ ${preprocess} == ${TRUE} ];then
     read -p "請輸入 dropna 閥值 (預設=0.01): " drop_ratio
     read -p "請輸入 stride 大小 (預設=100): " stride
     read -p "請輸入動態窗口大小 (預設=100): " window
+    rm -f ./data/preprocessed_data
     echo "執行資料前處理中......"
     python ./data_preprocessing.py --drop=${drop_ratio} --stride=${stride} --window=${window}
     echo "完成資料前處理"
@@ -23,3 +24,4 @@ for f in ${files[@]}; do
     echo "進行 VARMA/ARIMA處理: ${f}..."
     python ./VARMA_prediction.py --filename=${f} --testratio=${test_ratio}
 done
+echo "VARMA/ARIMA 執行完畢"
