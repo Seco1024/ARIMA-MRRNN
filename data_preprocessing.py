@@ -31,7 +31,7 @@ for ticker in etf50_list:
     stock_list[ticker] = ticker_df
     
 # 填補缺失值、刪除 stock_id 欄位
-stock_list, removed_list = preprocess.removeNAvalue(stock_list, args.drop)
+stock_list, removed_list = preprocess.removeNAvalue(stock_list, float(args.drop))
 for key in stock_list.keys():
     stock_list[key] = stock_list[key].drop('stock_id', axis=1)
 
