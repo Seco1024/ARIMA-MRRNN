@@ -1,7 +1,7 @@
 mkdir ./data
 cd ./data
 mkdir ./raw_data
-mkdir ./preprocssed_data
+mkdir ./preprocessed_data
 mkdir ./VARMA_ARIMA
 mkdir ./plot
 cd ./raw_data
