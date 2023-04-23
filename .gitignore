@@ -2,3 +2,4 @@
 /data/
 __pycache__/
 data_visualzation.ipynb
+run_VARMA_windows.sh
