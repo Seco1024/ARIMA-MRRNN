@@ -4,3 +4,4 @@ __pycache__/
 data_visualzation.ipynb
 win_initialize.sh
 win_run_VARMA.sh
+./out/VARMA_ARIMA_residual/mean.csv
