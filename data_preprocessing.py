@@ -48,4 +48,5 @@ for (ticker1, ticker2) in comb:
         corr.set_index('index', inplace=True)
     else:
         corr.set_index('date', inplace=True)
+    corr.interpolate(method='time', inplace=True)
     corr.to_csv(f'./data/preprocessed_data/{ticker1}_{ticker2}.csv', index_label='date')
