@@ -25,7 +25,12 @@ def getOrder(order_dict):
         else:
             counter[lst[0]] += 1
     max_order = max(counter, key=lambda k:counter[k])
-    return max_order
+    if max_order != (0, 0, 0):
+        return max_order
+    else:
+        del counter[max_order]
+        second_order = max(counter, key=lambda k:counter[k])
+        return second_order
 
 def train_set_predict(result, train):
     train_predict = result.predict(start=0, end=len(train)-1, alpha=0.05)
