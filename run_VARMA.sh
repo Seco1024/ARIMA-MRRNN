@@ -24,4 +24,5 @@ for f in ${files[@]}; do
     echo "進行 VARMA/ARIMA處理: ${f}..."
     python ./VARMA_prediction.py --filename=${f} --testratio=${test_ratio}
 done
+python ./residual.py
 echo "VARMA/ARIMA 執行完畢"
