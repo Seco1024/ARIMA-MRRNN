@@ -1,6 +1,7 @@
 import numpy as np 
 import pandas as pd
 import matplotlib.pyplot as plt
+import random
 
 from statsmodels.tsa.arima_model import ARIMA, ARIMAResults, ARMA, ARMAResults
 from statsmodels.tsa.statespace.varmax import VARMAX, VARMAXResults
@@ -17,7 +18,7 @@ warnings.filterwarnings("ignore")
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--filename', required=True, help='Enter filename')
-parser.add_argument('--test-ratio', defualt=0.2, help='test ratio')
+parser.add_argument('--testratio',  default=0.2, help='test ratio')
 args = parser.parse_args()
 
 # 讀取檔案
@@ -45,7 +46,7 @@ for i in range(max_diff):
     transformed_matrix = transformed_matrix.diff().dropna()
 
 # 資料分割
-nobs = int(len(transformed_matrix) * 0.2)
+nobs = int(len(transformed_matrix) * args.testratio)
 train, test = transformed_matrix[0:-nobs], transformed_matrix[-nobs:]
 
 # auto_arima
@@ -87,5 +88,7 @@ for col in prediction.columns:
     wholeRMSE = rmse(corr_matrix[col].iloc[max_diff:], prediction[col])
     df_error.loc[col, 'VARMA RMSE'] = wholeRMSE
 
-# 視覺化
-arima_tools.VARMA_visualize(corr_matrix, prediction, '2330', '1101', preferred_order, 0, 0, nobs)
+# 生成圖表
+random.seed()
+if random.random() < 0.05:
+    arima_tools.VARMA_visualize(corr_matrix, prediction, '2330', '1101', preferred_order, 0, 0, nobs)
