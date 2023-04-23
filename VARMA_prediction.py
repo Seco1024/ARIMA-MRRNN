@@ -19,7 +19,7 @@ warnings.filterwarnings("ignore")
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--filename', required=True, help='Enter filename')
-parser.add_argument('--test-ratio', defualt=0.2, help='test ratio')
+parser.add_argument('--testratio', default=0.2, help='test ratio')
 args = parser.parse_args()
 
 # 讀取檔案
@@ -48,7 +48,7 @@ for i in range(max_diff):
     transformed_matrix = transformed_matrix.diff().dropna()
 
 # 資料分割
-nobs = int(len(transformed_matrix) * args.testratio)
+nobs = int(len(transformed_matrix) * float(args.testratio))
 train, test = transformed_matrix[0:-nobs], transformed_matrix[-nobs:]
 
 # auto_arima
