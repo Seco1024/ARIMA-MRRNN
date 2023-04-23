@@ -25,7 +25,7 @@ args = parser.parse_args()
 # 讀取檔案
 preprocessed_path = './data/preprocessed_data'
 corr_matrix = pd.read_csv(os.path.join(preprocessed_path, args.filename), index_col='date', parse_dates=True)
-corr_matrix = corr_matrix.dropna()
+corr_matrix = corr_matrix.fillna(method='ffill')
 
 # 平穩化
 diff_dict = {}
