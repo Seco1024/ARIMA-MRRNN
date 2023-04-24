@@ -43,11 +43,11 @@ for (ticker1, ticker2) in comb:
     corr = pd.DataFrame(stock_list[ticker1].rolling(window=window_size).corr(stock_list[ticker2]))
     corr.drop(corr.index[:window_size-1], inplace=True)
     corr = corr.reset_index(drop=False)
-    corr = corr[corr.index % (stride - 1) == 0]
+    corr = corr[corr.index % (stride) == 0]
     if 'index' in corr.columns:
-        corr.set_index('index', inplace=True)
-    else:
-        corr.set_index('date', inplace=True)
+        corr = corr.rename(columns={'index': 'date'})
+    corr['date'] = pd.to_datetime(corr['date'], format='%Y-%m-%d')
+    corr.set_index('date', inplace=True)
     corr.replace([np.inf, -np.inf], np.nan, inplace=True)
     corr.interpolate(method='time', inplace=True)
     corr.to_csv(f'./data/preprocessed_data/{ticker1}_{ticker2}.csv', index_label='date')

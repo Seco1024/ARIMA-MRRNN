@@ -56,7 +56,7 @@ def indiff(forecast, origin, max_diff, isTest, nobs):
         forecast[col] = inversed[max_diff:]
     return forecast
 
-def visualize(origin, predict, ticker1, ticker2, model, isTest, isTrain, nobs):
+def visualize(origin, predict, ticker1, ticker2, model, isTest, isTrain, nobs, order_dict):
     for col in predict.columns:
         if isTest:
             title = f'{model} Prediction on {col} (test):{ticker1}-{ticker2}'
@@ -67,7 +67,12 @@ def visualize(origin, predict, ticker1, ticker2, model, isTest, isTrain, nobs):
         ylabel = f'Correlation Coefficient on {col}'
         xlabel=''
 
-        fcst = predict[col].rename(f'{model} Prediction')
+        if model == 'ARIMA':
+            legend_name = f'{model}{order_dict[col][0]} Prediction'
+        elif model == 'VARMA':
+            legend_name = f'{model}({getOrder(order_dict)[0]}, {getOrder(order_dict)[2]}) Prediction'
+
+        fcst = predict[col].rename(legend_name)
         ax = fcst.plot(legend=True, figsize=(8,5),title=title)
         origin[col].plot(legend=True)
         ax.autoscale(axis='x',tight=True)

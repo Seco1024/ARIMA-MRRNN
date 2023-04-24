@@ -11,10 +11,17 @@ mkdir Technical
 cd ../VARMA_ARIMA
 mkdir ./after_ARIMA
 mkdir ./after_VARMA
-mkdir ./residual
 cd ../plot
 mkdir ./after_ARIMA
 mkdir ./after_VARMA
 cd ../../
-pip install -r requirements.txt
+
+mkdir ./out
+cd ./out
+mkdir ./VARMA_ARIMA_residual
+cd ./VARMA_ARIMA_residual
+mkdir ./anomalies
+cd ../../
+
+conda install requirements.txt
 python raw_data_collecting.py

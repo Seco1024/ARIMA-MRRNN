@@ -20,6 +20,7 @@ warnings.filterwarnings("ignore")
 parser = argparse.ArgumentParser()
 parser.add_argument('--filename', required=True, help='Enter filename')
 parser.add_argument('--testratio', default=0.2, help='test ratio')
+parser.add_argument('--window_size', default=100, help='window size')
 args = parser.parse_args()
 
 # 讀取檔案
@@ -137,16 +138,19 @@ for col in arima_prediction.columns:
 # 輸出 error
 error_mean = pd.DataFrame(df_error.mean())
 error_mean = error_mean.transpose()
-error_mean.to_csv(f'./out/VARMA_ARIMA_residual/{args.filename}')
+if (error_mean.iloc[0,:] > 1).any() == True:
+    error_mean.to_csv(f'./out/VARMA_ARIMA_residual/anomalies/{args.filename}')
+    print(f"anomaly residual output on {args.filename}")
+else:
+    error_mean.to_csv(f'./out/VARMA_ARIMA_residual/window{args.window_size}/{args.filename}')
 
 # 以一定概率生成圖表
-
 random.seed()
 if random.random() < 0.05:
     ticker1, ticker2 = re.findall(r"\d+", args.filename)[0], re.findall(r"\d+", args.filename)[1]
-    arima_tools.visualize(corr_matrix, varma_prediction, ticker1, ticker2, 'VARMA', 0, 0, nobs)
-    arima_tools.visualize(corr_matrix, arima_prediction, ticker1, ticker2, 'ARIMA', 0, 0, nobs)
-    arima_tools.visualize(corr_matrix[-nobs:], varma_test_forecast, ticker1, ticker2, 'VARMA', 1, 0, nobs)
-    arima_tools.visualize(corr_matrix[-nobs:], arima_test_forecast, ticker1, ticker2, 'ARIMA', 1, 0, nobs)
-    arima_tools.visualize(corr_matrix[:-nobs], varma_train_predict, ticker1, ticker2, 'VARMA', 0, 1, nobs)
-    arima_tools.visualize(corr_matrix[:-nobs], arima_train_predict, ticker1, ticker2, 'ARIMA', 0, 1, nobs)
+    arima_tools.visualize(corr_matrix, varma_prediction, ticker1, ticker2, 'VARMA', 0, 0, nobs, order_dict)
+    arima_tools.visualize(corr_matrix, arima_prediction, ticker1, ticker2, 'ARIMA', 0, 0, nobs, order_dict)
+    arima_tools.visualize(corr_matrix[-nobs:], varma_test_forecast, ticker1, ticker2, 'VARMA', 1, 0, nobs, order_dict)
+    arima_tools.visualize(corr_matrix[-nobs:], arima_test_forecast, ticker1, ticker2, 'ARIMA', 1, 0, nobs, order_dict)
+    arima_tools.visualize(corr_matrix[:-nobs], varma_train_predict, ticker1, ticker2, 'VARMA', 0, 1, nobs, order_dict)
+    arima_tools.visualize(corr_matrix[:-nobs], arima_train_predict, ticker1, ticker2, 'ARIMA', 0, 1, nobs, order_dict)
