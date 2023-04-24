@@ -2,7 +2,7 @@
 /data/
 __pycache__/
 data_visualzation.ipynb
+VARMA_prediction.ipynb
+out/VARMA_ARIMA_residual/mean.csv
 win_initialize.sh
 win_run_VARMA.sh
-./out/VARMA_ARIMA_residual/mean.csv
-VARMA_prediction.ipynb
