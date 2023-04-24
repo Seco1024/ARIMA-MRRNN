@@ -17,4 +17,4 @@ mkdir ./after_ARIMA
 mkdir ./after_VARMA
 cd ../../
 pip install -r requirements.txt
-python raw_data_collecting
+python raw_data_collecting.py
