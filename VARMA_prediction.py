@@ -154,3 +154,11 @@ if random.random() < 0.05:
     arima_tools.visualize(corr_matrix[-nobs:], arima_test_forecast, ticker1, ticker2, 'ARIMA', 1, 0, nobs, order_dict)
     arima_tools.visualize(corr_matrix[:-nobs], varma_train_predict, ticker1, ticker2, 'VARMA', 0, 1, nobs, order_dict)
     arima_tools.visualize(corr_matrix[:-nobs], arima_train_predict, ticker1, ticker2, 'ARIMA', 0, 1, nobs, order_dict)
+
+# 計算 residuals
+arima_residual_matrix = arima_prediction - corr_matrix
+varma_residual_matrix = varma_prediction - corr_matrix
+arima_residual_matrix = arima_residual_matrix[max_diff:]
+varma_residual_matrix = varma_residual_matrix[max_diff:]
+arima_residual_matrix.to_csv(f"./data/VARMA_ARIMA/after_ARIMA/{args.filename}", index='date')
+varma_residual_matrix.to_csv(f"./data/VARMA_ARIMA/after_VARMA/{args.filename}", index='date')
