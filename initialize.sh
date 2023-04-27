@@ -18,9 +18,10 @@ cd ../../
 
 mkdir ./out
 cd ./out
-mkdir ./VARMA_ARIMA_residual
-cd ./VARMA_ARIMA_residual
+mkdir ./VARMA_ARIMA_error
+cd ./VARMA_ARIMA_error
 mkdir ./anomalies
+mkdir ./window15
 cd ../../
 
 conda install requirements.txt

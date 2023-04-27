@@ -139,10 +139,10 @@ for col in arima_prediction.columns:
 error_mean = pd.DataFrame(df_error.mean())
 error_mean = error_mean.transpose()
 if (error_mean.iloc[0,:] > 1).any() == True:
-    error_mean.to_csv(f'./out/VARMA_ARIMA_residual/anomalies/{args.filename}')
+    error_mean.to_csv(f'./out/VARMA_ARIMA_error/anomalies/{args.filename}')
     print(f"anomaly residual output on {args.filename}")
 else:
-    error_mean.to_csv(f'./out/VARMA_ARIMA_residual/window{args.window_size}/{args.filename}')
+    error_mean.to_csv(f'./out/VARMA_ARIMA_error/window{args.window_size}/{args.filename}')
 
 # 以一定概率生成圖表
 random.seed()
