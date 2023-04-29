@@ -58,6 +58,7 @@ def indiff(forecast, origin, max_diff, isTest, nobs):
 
 def visualize(origin, predict, ticker1, ticker2, model, isTest, isTrain, nobs, order_dict):
     for col in predict.columns:
+        plt.figure()
         if isTest:
             title = f'{model} Prediction on {col} (test):{ticker1}-{ticker2}'
         elif isTrain:
