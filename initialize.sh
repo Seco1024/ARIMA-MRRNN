@@ -24,5 +24,5 @@ mkdir ./anomalies
 mkdir ./window15
 cd ../../
 
-conda install requirements.txt
+conda install --file requirements.txt
 python raw_data_collecting.py
