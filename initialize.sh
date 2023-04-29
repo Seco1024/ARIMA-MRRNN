@@ -1,3 +1,4 @@
+#!/bin/bash
 mkdir ./data
 cd ./data
 mkdir ./raw_data
