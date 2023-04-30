@@ -1,8 +1,7 @@
 .env
-/data/
+/data/raw_data/
+/data/preprocessed_data/
 __pycache__/
 data_visualzation.ipynb
 VARMA_prediction.ipynb
 /out/VARMA_ARIMA_error/*.csv
-win_initialize.sh
-win_run_VARMA.sh

@@ -79,4 +79,4 @@ def visualize(origin, predict, ticker1, ticker2, model, isTest, isTrain, nobs, o
         ax.autoscale(axis='x',tight=True)
         ax.set(xlabel=xlabel, ylabel=ylabel)
         label = 'test' if isTest else 'train' if isTrain else 'prediction'
-        plt.savefig(f'./data/plot/after_{model}/{ticker1}-{ticker2}-{label}-{col}.png')
+        plt.savefig(f'./out/VARMA_ARIMA_plot/after_{model}/{ticker1}-{ticker2}-{label}-{col}.png')
