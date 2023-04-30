@@ -11,6 +11,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--drop', default=0.01, help='dropping threshold')
 parser.add_argument('--window', default=100, help="rolling window")
 parser.add_argument('--stride', default=100, help="stride")
+parser.add_argument('--mode', default=0)
 args = parser.parse_args()
 
 # 合併表格
@@ -41,6 +42,8 @@ stride = int(args.stride)
 comb = list(itertools.combinations(stock_list.keys(), 2))
 for (ticker1, ticker2) in comb:
     corr = pd.DataFrame(stock_list[ticker1].rolling(window=window_size).corr(stock_list[ticker2]))
+    if args.mode == 1:
+        corr = corr.loc[:, ['Dealer_buy','Dealer_sell', 'MarginPurchaseBuy', 'MarginPurchaseSell', 'ShortSaleBuy', 'ShortSaleSell', 'spread', 'close']]
     corr.drop(corr.index[:window_size-1], inplace=True)
     corr = corr.reset_index(drop=False)
     corr = corr[corr.index % (stride) == 0]
