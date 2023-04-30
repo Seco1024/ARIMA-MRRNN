@@ -59,37 +59,52 @@ for col in transformed_matrix.columns:
             max_q=6, error_action='ignore', suppress_warnings=True, seasonal=False)
     info =[auto_model.order, auto_model.aic(), auto_model.bic()]
     order_dict[col] = info
-order = arima_tools.getOrder(order_dict)
-preferred_order = (order[0], order[2])
 
-# VARMA
-train_model = VARMAX(train, order=preferred_order, trend='c')
-varma_train_result = train_model.fit(maxister=1000, disp=False)
-varma_test_forecast = arima_tools.test_set_forecast(varma_train_result, test) # 預測：測試資料集
-varma_train_predict = arima_tools.train_set_predict(varma_train_result, train) # 預測：訓練資料集
-if max_diff > 0 : # 逆差分
-    varma_test_forecast = arima_tools.indiff(varma_test_forecast, corr_matrix, max_diff, 1, nobs)
-    varma_train_predict = arima_tools.indiff(varma_train_predict, corr_matrix, max_diff, 0, nobs)
+# 異常處理
+anomalous_flag = 1
+while anomalous_flag == 1 or order_dict:
+    order = arima_tools.getOrder(order_dict)
+    preferred_order = (order[0], order[2])
+    # VARMA
+    train_model = VARMAX(train, order=preferred_order, trend='c')
+    varma_train_result = train_model.fit(maxister=1000, disp=False)
+    varma_test_forecast = arima_tools.test_set_forecast(varma_train_result, test) # 預測：測試資料集
+    varma_train_predict = arima_tools.train_set_predict(varma_train_result, train) # 預測：訓練資料集
+    if max_diff > 0 : # 逆差分
+        varma_test_forecast = arima_tools.indiff(varma_test_forecast, corr_matrix, max_diff, 1, nobs)
+        varma_train_predict = arima_tools.indiff(varma_train_predict, corr_matrix, max_diff, 0, nobs)
 
-# VARMA evaluation
-df_error = pd.DataFrame(columns=['mean', 'VARMA RMSE (test)', 'VARMA RMSE (train)', 'VARMA RMSE', 'ARIMA RMSE (test)', 'ARIMA RMSE (train)', 'ARIMA RMSE'])
-for col in varma_test_forecast.columns:
-    varma_testRMSE = rmse(corr_matrix[col].iloc[-nobs:], varma_test_forecast[col])
-    vrama_trainRMSE = rmse(corr_matrix[col].iloc[max_diff:len(corr_matrix)-nobs], varma_train_predict[col])
-    df_error.loc[col, 'VARMA RMSE (test)'] = varma_testRMSE
-    df_error.loc[col, 'VARMA RMSE (train)'] = vrama_trainRMSE
-    df_error.loc[col, 'mean'] = corr_matrix[col].mean()
+    # VARMA evaluation
+    df_error = pd.DataFrame(columns=['mean', 'VARMA RMSE (test)', 'VARMA RMSE (train)', 'VARMA RMSE', 'ARIMA RMSE (test)', 'ARIMA RMSE (train)', 'ARIMA RMSE'])
+    for col in varma_test_forecast.columns:
+        varma_testRMSE = rmse(corr_matrix[col].iloc[-nobs:], varma_test_forecast[col])
+        varma_trainRMSE = rmse(corr_matrix[col].iloc[max_diff:len(corr_matrix)-nobs], varma_train_predict[col])
+        df_error.loc[col, 'VARMA RMSE (test)'] = varma_testRMSE
+        df_error.loc[col, 'VARMA RMSE (train)'] = varma_trainRMSE
+        df_error.loc[col, 'mean'] = corr_matrix[col].mean()
 
-# VARMA re-fit
-varma_model = VARMAX(transformed_matrix, order=preferred_order, trend='c')
-varma_result = varma_model.fit(maxister=1000, disp=False)
-varma_prediction = arima_tools.train_set_predict(varma_result, transformed_matrix) # 整段序列資料
-if max_diff > 0 :
-    varma_prediction = arima_tools.indiff(varma_prediction, corr_matrix, max_diff, 0, nobs)
+    # 異常偵測
+    if (df_error.iloc[0,:] > 1.5).any() == True:
+        order_dict = {key: lst for key, lst in order_dict.items() if lst[0] != (preferred_order[0], 0, preferred_order[1])}
+        continue
 
-for col in varma_prediction.columns:
-    varma_wholeRMSE = rmse(corr_matrix[col].iloc[max_diff:], varma_prediction[col])
-    df_error.loc[col, 'VARMA RMSE'] = varma_wholeRMSE
+    # VARMA re-fit
+    varma_model = VARMAX(transformed_matrix, order=preferred_order, trend='c')
+    varma_result = varma_model.fit(maxister=1000, disp=False)
+    varma_prediction = arima_tools.train_set_predict(varma_result, transformed_matrix) # 整段序列資料
+    if max_diff > 0 :
+        varma_prediction = arima_tools.indiff(varma_prediction, corr_matrix, max_diff, 0, nobs)
+
+    for col in varma_prediction.columns:
+        varma_wholeRMSE = rmse(corr_matrix[col].iloc[max_diff:], varma_prediction[col])
+        df_error.loc[col, 'VARMA RMSE'] = varma_wholeRMSE
+
+    # 異常偵測
+    if (df_error.iloc[0,:] > 1.5).any() == True:
+        order_dict = {key: lst for key, lst in order_dict.items() if lst[0] != (preferred_order[0], 0, preferred_order[1])}
+    else:
+        anomalous_flag = 0
+        break
 
 # multiple ARIMA
 arima_test_forecast = pd.DataFrame(columns=corr_matrix.columns)
@@ -146,7 +161,7 @@ else:
 
 # 以一定概率生成圖表
 random.seed()
-if random.random() < 1:
+if random.random() < 0.008:
     ticker1, ticker2 = re.findall(r"\d+", args.filename)[0], re.findall(r"\d+", args.filename)[1]
     arima_tools.visualize(corr_matrix, varma_prediction, ticker1, ticker2, 'VARMA', 0, 0, nobs, order_dict)
     arima_tools.visualize(corr_matrix, arima_prediction, ticker1, ticker2, 'ARIMA', 0, 0, nobs, order_dict)
