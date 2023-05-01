@@ -84,7 +84,7 @@ while anomalous_flag == 1 or order_dict:
         df_error.loc[col, 'mean'] = corr_matrix[col].mean()
 
     # 異常偵測
-    if (df_error.iloc[0,:] > 1.5).any() == True:
+    if (df_error.iloc[0,:] > 2).any() == True:
         order_dict = {key: lst for key, lst in order_dict.items() if lst[0] != (preferred_order[0], 0, preferred_order[1])}
         continue
 
@@ -100,7 +100,7 @@ while anomalous_flag == 1 or order_dict:
         df_error.loc[col, 'VARMA RMSE'] = varma_wholeRMSE
 
     # 異常偵測
-    if (df_error.iloc[0,:] > 1.5).any() == True:
+    if (df_error.iloc[0,:] > 2).any() == True:
         order_dict = {key: lst for key, lst in order_dict.items() if lst[0] != (preferred_order[0], 0, preferred_order[1])}
     else:
         anomalous_flag = 0
@@ -153,7 +153,7 @@ for col in arima_prediction.columns:
 # 輸出 error
 error_mean = pd.DataFrame(df_error.mean())
 error_mean = error_mean.transpose()
-if (error_mean.iloc[0,:] > 1).any() == True:
+if (error_mean.iloc[0,:] > 2).any() == True:
     error_mean.to_csv(f'./out/VARMA_ARIMA_error/anomalies/{args.filename}')
     print(f"anomaly residual output for {args.filename}")
 else:
