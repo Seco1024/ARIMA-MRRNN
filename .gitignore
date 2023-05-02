@@ -1,7 +1,6 @@
 .env
-/data/raw_data/
-/data/preprocessed_data/
+/data/
 __pycache__/
 data_visualzation.ipynb
 VARMA_prediction.ipynb
-/out/VARMA_ARIMA_error/*.csv
+/out/
