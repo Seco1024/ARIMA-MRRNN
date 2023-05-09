@@ -5,10 +5,10 @@ from statsmodels.tsa.stattools import adfuller
 from statsmodels.tsa.arima_model import ARIMA, ARIMAResults, ARMA, ARMAResults
 from statsmodels.tsa.statespace.varmax import VARMAX, VARMAXResults
 from pmdarima.utils import diff_inv
-
+import os
 import warnings
-warnings.filterwarnings("ignore")
 
+warnings.filterwarnings("ignore")
 
 def adf_test(series):
     result = adfuller(series.dropna(), autolag='AIC') # .dropna() handles differenced data
@@ -57,6 +57,7 @@ def indiff(forecast, origin, max_diff, isTest, nobs):
     return forecast
 
 def visualize(origin, predict, ticker1, ticker2, model, isTest, isTrain, nobs, order_dict):
+    parent_dir = os.path.abspath(os.path.join(os.getcwd(), os.path.pardir))
     for col in predict.columns:
         plt.figure()
         if isTest:
@@ -79,4 +80,4 @@ def visualize(origin, predict, ticker1, ticker2, model, isTest, isTrain, nobs, o
         ax.autoscale(axis='x',tight=True)
         ax.set(xlabel=xlabel, ylabel=ylabel)
         label = 'test' if isTest else 'train' if isTrain else 'prediction'
-        plt.savefig(f'./out/VARMA_ARIMA_plot/after_{model}/{ticker1}-{ticker2}-{label}-{col}.png')
+        plt.savefig(os.path.join(parent_dir, f'out/VARMA_ARIMA_plot/after_{model}/{ticker1}-{ticker2}-{label}-{col}.png'))

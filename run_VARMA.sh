@@ -1,6 +1,6 @@
 #!/bin/bash
-chmod u+x run_VARMA.sh
 TRUE=1
+cd ./src
 read -p "是否進行資料前處理, 請輸入0或1:" preprocess
 if [ ${preprocess} == ${TRUE} ];then
     read -p "dropna threshold (default=0.01): " drop_ratio
@@ -11,6 +11,8 @@ if [ ${preprocess} == ${TRUE} ];then
     python ./data_preprocessing.py --drop=${drop_ratio} --stride=${stride} --window=${window} --mode=${mode}
     echo "完成資料前處理"
 fi
+
+cd ../
 dataset_n=$(ls ./data/preprocessed_data | wc -l)
 read -p "欲執行 VARMA/ARIMA 處理的次數比例: " ratio
 n=$(echo "${dataset_n} * ${ratio}" | bc)
@@ -19,6 +21,8 @@ files=()
 for p in $paths; do
     files+=("$(basename "$p")")
 done
+
+cd ./src
 read -p "test set ratio: " test_ratio
 read -p "window size: " window
 for f in ${files[@]}; do

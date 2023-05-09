@@ -1,6 +1,5 @@
 .env
 /data/
-__pycache__/
-data_visualzation.ipynb
-VARMA_prediction.ipynb
 /out/
+__pycache__/
+*.ipynb

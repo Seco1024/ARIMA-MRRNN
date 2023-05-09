@@ -17,6 +17,7 @@ import os
 import warnings
 warnings.filterwarnings("ignore")
 
+parent_dir = os.path.abspath(os.path.join(os.getcwd(), os.path.pardir))
 parser = argparse.ArgumentParser()
 parser.add_argument('--filename', required=True, help='Enter filename')
 parser.add_argument('--testratio', default=0.2, help='test ratio')
@@ -24,7 +25,7 @@ parser.add_argument('--window_size', default=100, help='window size')
 args = parser.parse_args()
 
 # 讀取檔案
-preprocessed_path = './data/preprocessed_data'
+preprocessed_path = os.path.join(parent_dir, 'data/preprocessed_data')
 corr_matrix = pd.read_csv(os.path.join(preprocessed_path, args.filename), index_col='date', parse_dates=True)
 corr_matrix = corr_matrix.fillna(method='ffill')
 
@@ -61,8 +62,8 @@ for col in transformed_matrix.columns:
     order_dict[col] = info
 
 # 異常處理
-anomalous_flag = 1
-while anomalous_flag == 1 or order_dict:
+limit = 5
+while limit > 0 or order_dict:
     order = arima_tools.getOrder(order_dict)
     preferred_order = (order[0], order[2])
     # VARMA
@@ -86,6 +87,7 @@ while anomalous_flag == 1 or order_dict:
     # 異常偵測
     if (df_error.iloc[0,:] > 2).any() == True:
         order_dict = {key: lst for key, lst in order_dict.items() if lst[0] != (preferred_order[0], 0, preferred_order[1])}
+        limit = limit - 1
         continue
 
     # VARMA re-fit
@@ -102,8 +104,9 @@ while anomalous_flag == 1 or order_dict:
     # 異常偵測
     if (df_error.iloc[0,:] > 2).any() == True:
         order_dict = {key: lst for key, lst in order_dict.items() if lst[0] != (preferred_order[0], 0, preferred_order[1])}
+        limit = limit - 1
     else:
-        anomalous_flag = 0
+        limit = 0
         break
 
 # multiple ARIMA
@@ -154,14 +157,14 @@ for col in arima_prediction.columns:
 error_mean = pd.DataFrame(df_error.mean())
 error_mean = error_mean.transpose()
 if (error_mean.iloc[0,:] > 2).any() == True:
-    error_mean.to_csv(f'./out/VARMA_ARIMA_error/anomalies/{args.filename}')
+    error_mean.to_csv(os.path.join(parent_dir, f'out/VARMA_ARIMA_error/anomalies/{args.filename}'))
     print(f"anomaly residual output for {args.filename}")
 else:
-    error_mean.to_csv(f'./out/VARMA_ARIMA_error/window{args.window_size}/{args.filename}')
+    error_mean.to_csv(os.path.join(parent_dir, f'out/VARMA_ARIMA_error/window{args.window_size}/{args.filename}'))
 
 # 以一定概率生成圖表
 random.seed()
-if random.random() < 0.008:
+if random.random() < 0.005:
     ticker1, ticker2 = re.findall(r"\d+", args.filename)[0], re.findall(r"\d+", args.filename)[1]
     arima_tools.visualize(corr_matrix, varma_prediction, ticker1, ticker2, 'VARMA', 0, 0, nobs, order_dict)
     arima_tools.visualize(corr_matrix, arima_prediction, ticker1, ticker2, 'ARIMA', 0, 0, nobs, order_dict)
@@ -175,5 +178,5 @@ arima_residual_matrix = arima_prediction - corr_matrix
 varma_residual_matrix = varma_prediction - corr_matrix
 arima_residual_matrix = arima_residual_matrix[max_diff:]
 varma_residual_matrix = varma_residual_matrix[max_diff:]
-arima_residual_matrix.to_csv(f"./data/VARMA_ARIMA/after_ARIMA/{args.filename}", index='date')
-varma_residual_matrix.to_csv(f"./data/VARMA_ARIMA/after_VARMA/{args.filename}", index='date')
+arima_residual_matrix.to_csv(os.path.join(parent_dir, f"data/VARMA_ARIMA/after_ARIMA/{args.filename}"), index='date')
+varma_residual_matrix.to_csv(os.path.join(parent_dir, f"data/VARMA_ARIMA/after_VARMA/{args.filename}"), index='date')

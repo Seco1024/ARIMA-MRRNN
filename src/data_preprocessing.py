@@ -1,12 +1,12 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import os
 import functools as ft
 import itertools
 import argparse
 from lib import preprocess
 
+parent_dir = os.path.abspath(os.path.join(os.getcwd(), os.path.pardir))
 parser = argparse.ArgumentParser()
 parser.add_argument('--drop', default=0.01, help='dropping threshold')
 parser.add_argument('--window', default=100, help="rolling window")
@@ -15,7 +15,7 @@ parser.add_argument('--mode', default=0)
 args = parser.parse_args()
 
 # 合併表格
-raw_data_path = os.path.join(os.path.abspath(''), 'data/raw_data')
+raw_data_path = os.path.join(parent_dir, 'data/raw_data')
 etf50_list = pd.read_csv(raw_data_path + '/etf50_tickers.csv', encoding='Big5').stock_id.tolist()
 subdir_dict = {'Major_Investor':'mii', 'Margin_Short_Sell':'mtss', 'Technical':'technical'}
 stock_list = {}
@@ -53,4 +53,4 @@ for (ticker1, ticker2) in comb:
     corr.set_index('date', inplace=True)
     corr.replace([np.inf, -np.inf], np.nan, inplace=True)
     corr.interpolate(method='time', inplace=True)
-    corr.to_csv(f'./data/preprocessed_data/{ticker1}_{ticker2}.csv', index_label='date')
+    corr.to_csv(os.path.join(parent_dir, f'data/preprocessed_data/{ticker1}_{ticker2}.csv'), index_label='date')
