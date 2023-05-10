@@ -2,5 +2,5 @@
 /data/
 /out/
 __pycache__/
-*.ipynb
+VARMA_prediction.ipynb
 .DS_Store
