@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import random
 import re
+import copy
 
 from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.statespace.varmax import VARMAX, VARMAXResults
@@ -61,10 +62,12 @@ for col in transformed_matrix.columns:
     info =[auto_model.order, auto_model.aic(), auto_model.bic()]
     order_dict[col] = info
 
+varma_dict = copy.deepcopy(order_dict)
+
 # 異常處理
 limit = 5
-while limit > 0 or order_dict:
-    order = arima_tools.getOrder(order_dict)
+while limit > 0 and varma_dict:
+    order = arima_tools.getOrder(varma_dict)
     preferred_order = (order[0], order[2])
     # VARMA
     train_model = VARMAX(train, order=preferred_order, trend='c')
@@ -86,7 +89,7 @@ while limit > 0 or order_dict:
 
     # 異常偵測
     if (df_error.iloc[0,:] > 2).any() == True:
-        order_dict = {key: lst for key, lst in order_dict.items() if lst[0] != (preferred_order[0], 0, preferred_order[1])}
+        varma_dict = {key: lst for key, lst in varma_dict.items() if lst[0] != (preferred_order[0], 0, preferred_order[1])}
         limit = limit - 1
         continue
 
@@ -103,7 +106,7 @@ while limit > 0 or order_dict:
 
     # 異常偵測
     if (df_error.iloc[0,:] > 2).any() == True:
-        order_dict = {key: lst for key, lst in order_dict.items() if lst[0] != (preferred_order[0], 0, preferred_order[1])}
+        varma_dict = {key: lst for key, lst in varma_dict.items() if lst[0] != (preferred_order[0], 0, preferred_order[1])}
         limit = limit - 1
     else:
         limit = 0
