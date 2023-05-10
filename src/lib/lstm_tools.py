@@ -2,8 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from keras.models import Sequential
-from keras.layers import Dense, Dropout
-from keras.layers import LSTM
+from keras.layers import Dense, Dropout, LSTM
 from keras.losses import MeanSquaredError
 from keras.optimizers import Adam
 from keras.regularizers import l1_l2
