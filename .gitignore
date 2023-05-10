@@ -3,5 +3,5 @@
 /out/
 /model/
 __pycache__/
-VARMA_prediction.ipynb
+*.ipynb
 .DS_Store
