@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 sleep 10
 paths=$(ls ./data/preprocessed_data | sort)
 files=()
