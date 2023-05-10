@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 paths=$(ls ./data/preprocessed_data | sort)
 files=()
 for p in $paths; do
