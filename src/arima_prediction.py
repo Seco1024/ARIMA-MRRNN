@@ -72,7 +72,7 @@ arima_test_forecast['date'] = pd.DatetimeIndex(test.index)
 arima_test_forecast.set_index('date', inplace=True)
 arima_train_predict = arima_train_predict[max_diff:]
 
-# Multiple ARIMA Evaluation
+# Evaluation
 df_error = pd.DataFrame(columns=['ARIMA MSE (test)', 'ARIMA MSE (train)', 'ARIMA MSE(whole)', 'ARIMA MAE (test)', 'ARIMA MAE (train)', 'ARIMA MAE(whole)'])
 for col in arima_test_forecast.columns:
     df_error.loc[col, 'ARIMA MSE (test)'] = mean_squared_error(corr_matrix[col].iloc[-nobs:], arima_test_forecast[col])
@@ -90,7 +90,7 @@ for col, lst in order_dict.items():
 arima_prediction = arima_prediction[max_diff:]
 for col in arima_prediction.columns:
     df_error.loc[col, 'ARIMA MSE(whole)'] = mean_squared_error(corr_matrix[col][max_diff:], arima_prediction[col])
-    df_error.loc[col, 'ARIMA MAE(whole)'] = mean_squared_error(corr_matrix[col][max_diff:], arima_prediction[col])
+    df_error.loc[col, 'ARIMA MAE(whole)'] = mean_absolute_error(corr_matrix[col][max_diff:], arima_prediction[col])
 
 arima_prediction.to_csv(os.path.join(parent_dir, f'data/VARMA_ARIMA_prediction/after_ARIMA/{args.filename}'))
 
