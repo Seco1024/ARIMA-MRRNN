@@ -16,5 +16,5 @@ for root, dir, files in os.walk(residual_path):
         exec(f"residual_df{file_n} = pd.read_csv(os.path.join(root, file))")
         file_n+=1
 residuals = [eval(f"residual_df{i}") for i in range(file_n)]
-residuals_mean = pd.DataFrame(pd.concat(residuals).mean(numeric_only=True), columns=['RMSE error'])
-residuals_mean.to_csv(os.path.join(parent_dir, f'out/VARMA_ARIMA_error/window{args.window}/mean{args.window}.csv'), columns=['RMSE error'])
+residuals_mean = pd.DataFrame(pd.concat(residuals).mean(numeric_only=True), columns=['MSE error'])
+residuals_mean.to_csv(os.path.join(parent_dir, f'out/VARMA_ARIMA_error/window{args.window}/mean{args.window}.csv'), columns=['MSE error'])

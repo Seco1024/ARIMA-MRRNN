@@ -26,8 +26,8 @@ cd ./src
 read -p "test set ratio: " test_ratio
 read -p "window size: " window
 for f in ${files[@]}; do
-    echo "進行 VARMA/ARIMA 處理: ${f}..."
-    python ./VARMA_prediction.py --filename=${f} --testratio=${test_ratio} --window_size=${window}
+    echo "進行 ARIMA 處理: ${f}..."
+    python ./arima_prediction.py --filename=${f} --testratio=${test_ratio} --window_size=${window}
 done
 python ./residual.py --window=${window}
-echo "VARMA/ARIMA 執行完畢"
+echo "ARIMA 執行完畢"
