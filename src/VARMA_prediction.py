@@ -156,10 +156,13 @@ for col in arima_prediction.columns:
     arima_wholeRMSE = rmse(corr_matrix[col], arima_prediction[col])
     df_error.loc[col, 'ARIMA RMSE'] = arima_wholeRMSE
 
+arima_prediction.to_csv(os.path.join(parent_dir, f'data/VARMA_ARIMA_prediction/after_ARIMA/{args.filename}'))
+varma_prediction.to_csv(os.path.join(parent_dir, f'data/VARMA_ARIMA_prediction/after_VARMA/{args.filename}'))
+
 # 輸出 error
 error_mean = pd.DataFrame(df_error.mean())
 error_mean = error_mean.transpose()
-if (error_mean.iloc[0,:] > 2).any() == True:
+if (error_mean.iloc[0,:] > 1.5).any() == True:
     error_mean.to_csv(os.path.join(parent_dir, f'out/VARMA_ARIMA_error/anomalies/{args.filename}'))
     print(f"anomaly residual output for {args.filename}")
 else:
