@@ -14,21 +14,30 @@ import argparse
 import logging
 import os
 
+from clearml import Task
+task = Task.init(project_name="ARIMA-MRRNN", task_name="ARIMA-LSTM, before data augmentation")
+
 logging.basicConfig(level=logging.CRITICAL)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', default='ARIMA', help='ARIMA or VARMA')
+parser.add_argument('--epochs', default=200)
+parser.add_argument('--batch', default=64)
+parser.add_argument('--model', default='LSTM')
 parser.add_argument('--neurons', default=64, help="number of neurons")
 parser.add_argument('--double_layer', default=0, help="is double layered")
-parser.add_argument('--l2', default=1, help="L2 Regularization")
+parser.add_argument('--dropout', default=0.5, help="Dropout Rate")
+parser.add_argument('--l2', default=0.01, help="L2 Regularization")
 parser.add_argument('--past_n', default=14)
-parser.add_argument('--epochs', default=200)
-parser.add_argument('--batch', default=128)
 args = parser.parse_args()
 
 today = lstm_tools.get_today()
 parent_dir = os.path.abspath(os.path.join(os.getcwd(), os.path.pardir))
-files_dir = os.path.join(parent_dir, f'data/VARMA_ARIMA/after_{args.model}/')
+files_dir = os.path.join(parent_dir, f'data/VARMA_ARIMA/after_ARIMA/')
+if not os.path.exists(os.path.join(parent_dir, f'models/{str(today)}')):
+    os.makedirs(os.path.join(parent_dir, f'models/{str(today)}'))
+    os.makedirs(os.path.join(parent_dir, f'out/{args.model}_error/{str(today)}'))
+    os.makedirs(os.path.join(parent_dir, f'out/{args.model}_plot/{str(today)}'))
+
 data = []
 d = 0
 
@@ -62,8 +71,8 @@ test_X, test_y = X[int(len(X) * (0.7 + 0.15)):], y[int(len(X) * (0.7 + 0.15)):]
 input_shape = (train_X.shape[1], train_X.shape[2])
 
 # train
-model = lstm_tools.build_lstm_model(input_shape, 1, int(args.neurons), 0.5, int(args.double_layer), int(args.l2))
-checkpoint_dir = os.path.join(parent_dir, f'models/{str(today)}_{args.model}_{str(args.neurons)}_{str(args.double_layer)}_{str(args.l2)}.h5')
+model = lstm_tools.build_lstm_model(input_shape, 1, int(args.neurons), float(args.dropout), int(args.double_layer), float(args.l2))
+checkpoint_dir = os.path.join(parent_dir, f'models/{str(today)}/{args.model}_{str(args.neurons)}_{str(args.double_layer)}_{str(args.l2)}.h5')
 early_stopping = EarlyStopping(monitor='val_loss', patience=50)
 checkpoint_callback = ModelCheckpoint(checkpoint_dir, monitor='val_loss', verbose=1, 
                                       mode='min', save_best_only=True)
@@ -71,6 +80,6 @@ lr_reduction = ReduceLROnPlateau(monitor='val_loss', factor=0.2,
                               patience=10, min_lr=0.00005)
 
 history = model.fit(train_X, train_y, epochs=int(args.epochs), batch_size=int(args.batch), validation_data=(val_X, val_y), callbacks=[early_stopping, checkpoint_callback, lr_reduction])
-lstm_tools.visualize_loss_plot(history, args.model, args.neurons, args.double_layer, args.l2)
-best_model = load_model(os.path.join(parent_dir, f'models/{str(today)}_{args.model}_{str(args.neurons)}_{str(args.double_layer)}_{str(args.l2)}.h5'))
-lstm_tools.evaluate_model(best_model, train_X, train_y, val_X, val_y, test_X, test_y, args.model, args.neurons, args.double_layer, args.l2)
+lstm_tools.visualize_loss_plot(history, args.model, args.neurons, args.double_layer, args.l2, today)
+best_model = load_model(os.path.join(parent_dir, f'models/{str(today)}/{args.model}_{str(args.neurons)}_{str(args.double_layer)}_{str(args.l2)}.h5'))
+lstm_tools.evaluate_model(best_model, train_X, train_y, val_X, val_y, test_X, test_y, args.model, args.neurons, args.double_layer, args.l2, today)
