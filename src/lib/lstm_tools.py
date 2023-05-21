@@ -37,7 +37,7 @@ def build_lstm_model(x_shape, y_shape, neurons, dropout_rate, is_doubled_layer, 
     model.add(Dense(x_shape[1], 'relu',  kernel_regularizer=regularizers.l2(l2)))
     model.add(Dense(y_shape, 'linear'))
     
-    adam = Adam(lr=0.001)
+    adam = Adam(lr=0.0001)
     mse = MeanSquaredError()
     model.compile(optimizer=adam, loss=mse, metrics=[metrics.MSE, metrics.MAE])
     return model
@@ -60,13 +60,14 @@ def evaluate_model(model, train_X, train_y, val_X, val_y, test_X, test_y, modeln
                       columns=["train_MSE", "val_MSE", "test_MSE", "train_MAE", "val_MAE", "test_MAE"])
     evaluate_df.to_csv(os.path.join(parent_dir, f'out/LSTM_error/{str(today)}/{str(modelname)}_{str(neurons)}_{str(double_layer)}_{str(l2)}.csv'), index=False)
     
-def visualize_prediction_plot(hybrid_prediction, original, timestamps, model, neurons, double_layer, l2, file, today):
+def visualize_prediction_plot(hybrid_prediction, original, arima_prediction, timestamps, model, neurons, double_layer, l2, file, today):
     plt.figure()
     ticker1, ticker2 = re.findall(r"\d+", file)[0], re.findall(r"\d+", file)[1]
-    plt.plot(timestamps, hybrid_prediction, label= f'ARIMA-{str(model)} Prediction Close')
+    plt.plot(timestamps, hybrid_prediction, label= f'ARIMA-LSTM Prediction Close')
     plt.plot(timestamps, original, label='Original Close')
+    plt.plot(timestamps, arima_prediction, label='ARIMA Prediction Close')
     plt.legend()
     plt.xlabel('year')
     plt.ylabel('Correlation Coefficient')
-    plt.title(f"ARIMA-{str(model)} Prediction on {ticker1}-{ticker2}(neurons={neurons})")
+    plt.title(f"ARIMA-ARIMA Prediction on {ticker1}-{ticker2}(neurons={neurons}, {today})")
     plt.savefig(os.path.join(parent_dir, f'out/hybrid_model_plot/{str(today)}/{str(model)}_{str(neurons)}_{str(double_layer)}_{str(l2)}({ticker1}_{ticker2}).png'))

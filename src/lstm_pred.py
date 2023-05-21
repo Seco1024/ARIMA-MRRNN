@@ -26,7 +26,7 @@ parser.add_argument('--neurons', default=64, help="number of neurons")
 parser.add_argument('--double_layer', default=0, help="is double layered")
 parser.add_argument('--l2', default=0.01, help="L2 Regularization")
 parser.add_argument('--dropout', default=0.5, help="Dropout Rate")
-parser.add_argument('--past_n', default=14)
+parser.add_argument('--lookback', default=14)
 args = parser.parse_args()
     
 parent_dir = os.path.abspath(os.path.join(os.getcwd(), os.path.pardir))
@@ -36,12 +36,12 @@ tmp_dir = os.path.join(parent_dir, 'data/VARMA_ARIMA_prediction/after_ARIMA/')
 today = lstm_tools.get_today()
 if not os.path.exists(os.path.join(parent_dir, f'models/{str(today)}')):
     today = lstm_tools.get_today()
-    today = datetime.strptime(today, '%m%d') - datetime.timedelta(days=1)
-    today = datetime.strftime(today, '%m%d')
+    today = datetime.datetime.strptime(today, '%m%d') - datetime.timedelta(days=1)
+    today = datetime.datetime.strftime(today, '%m%d')
 
 best_model = load_model(os.path.join(parent_dir, f'models/{str(today)}/{args.model}_{str(args.neurons)}_{str(args.double_layer)}_{str(args.l2)}.h5'))
 hybrid_prediction_mse, hybrid_prediction_mae, arima_prediction_mae, arima_prediction_mse = [], [], [], []
-past_n = args.past_n
+lookback = args.lookback
 future_n = 1
 
 for file in os.listdir(tmp_dir):
@@ -60,8 +60,8 @@ for file in os.listdir(tmp_dir):
     original_df = original_df[-len(arima_output_df):]
     
     residual_X, arima_prediction, original, lstm_predict = [], [], [], []
-    for i in range(past_n, len(residual_df) - future_n + 1):
-        residual_X.append(residual_df[i - past_n:i])
+    for i in range(lookback, len(residual_df) - future_n + 1):
+        residual_X.append(residual_df[i - lookback:i])
     residual_X = np.array([residual_X[i].values.tolist() for i in range(len(residual_X))])
     predictions_df = best_model.predict(residual_X)
     for i in range(len(predictions_df)):
@@ -78,8 +78,8 @@ for file in os.listdir(tmp_dir):
     hybrid_prediction_mae.append(mean_absolute_error(original, hybrid_prediction))
     
     if random.random() < 0.002:
-        lstm_tools.visualize_prediction_plot(hybrid_prediction, original, timestamps, args.model, args.neurons, args.double_layer, args.l2, file, today)
+        lstm_tools.visualize_prediction_plot(hybrid_prediction, original, arima_prediction, timestamps, args.model, args.neurons, args.double_layer, args.l2, file, today)
 
 df_error = pd.DataFrame(columns=['ARIMA prediction MSE', 'ARIMA prediction MAE', 'ARIMA_LSTM prediction MSE', 'ARIMA_LSTM prediction MAE'])
 df_error.loc[0] = lstm_tools.mean(arima_prediction_mse), lstm_tools.mean(arima_prediction_mae), lstm_tools.mean(hybrid_prediction_mse), lstm_tools.mean(hybrid_prediction_mae)
-df_error.to_csv(os.path.join(parent_dir, f'out/hybrid_model_error/{str(today)}/{str(args.model)}/{str(args.neurons)}_{str(args.double_layer)}_{str(args.l2)}'))
+df_error.to_csv(os.path.join(parent_dir, f'out/hybrid_model_error/{str(today)}/{str(args.model)}_{str(args.neurons)}_{str(args.double_layer)}_{str(args.l2)}'))

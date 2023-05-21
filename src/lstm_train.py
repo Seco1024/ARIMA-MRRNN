@@ -15,7 +15,7 @@ import logging
 import os
 
 from clearml import Task
-task = Task.init(project_name="ARIMA-MRRNN", task_name="ARIMA-LSTM, before data augmentation")
+task = Task.init(project_name="ARIMA-MRRNN", task_name="ARIMA-LSTM(data=technical, window=15)")
 
 logging.basicConfig(level=logging.CRITICAL)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -27,7 +27,7 @@ parser.add_argument('--neurons', default=64, help="number of neurons")
 parser.add_argument('--double_layer', default=0, help="is double layered")
 parser.add_argument('--dropout', default=0.5, help="Dropout Rate")
 parser.add_argument('--l2', default=0.01, help="L2 Regularization")
-parser.add_argument('--past_n', default=14)
+parser.add_argument('--lookback', default=14)
 args = parser.parse_args()
 
 today = lstm_tools.get_today()
@@ -37,6 +37,8 @@ if not os.path.exists(os.path.join(parent_dir, f'models/{str(today)}')):
     os.makedirs(os.path.join(parent_dir, f'models/{str(today)}'))
     os.makedirs(os.path.join(parent_dir, f'out/{args.model}_error/{str(today)}'))
     os.makedirs(os.path.join(parent_dir, f'out/{args.model}_plot/{str(today)}'))
+    os.makedirs(os.path.join(parent_dir, f'out/hybrid_model_error/{str(today)}'))
+    os.makedirs(os.path.join(parent_dir, f'out/hybrid_model_plot/{str(today)}'))
 
 data = []
 d = 0
@@ -53,14 +55,14 @@ for file in os.listdir(files_dir):
     
 # scaler = MinMaxScaler()
 X, y, train_X, train_y, val_X, val_y, test_X, test_y = [],[],[],[],[],[],[],[]
-past_n = args.past_n
+lookback = args.lookback
 future_n = 1
 
 for pair_corr in data:
     # scaler.fit(pair_corr)
     # pair_corr = scaler.transform(pair_corr)
-    for i in range(past_n, len(pair_corr) - future_n + 1):
-        X.append(pair_corr[i - past_n:i])
+    for i in range(lookback, len(pair_corr) - future_n + 1):
+        X.append(pair_corr[i - lookback:i])
         y.append(pair_corr[i + future_n - 1:i + future_n]['close'])
 
 X = np.array([X[i].values.tolist() for i in range(len(X))])

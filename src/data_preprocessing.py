@@ -44,6 +44,8 @@ for (ticker1, ticker2) in comb:
     corr = pd.DataFrame(stock_list[ticker1].rolling(window=window_size).corr(stock_list[ticker2]))
     if args.mode == "1":
         corr = corr.loc[:, ['Dealer_buy','Dealer_sell', 'MarginPurchaseBuy', 'MarginPurchaseSell', 'ShortSaleBuy', 'ShortSaleSell', 'spread', 'close']]
+    if args.mode == "2":
+        corr = corr.loc[:, ['open','max', 'min', 'spread', 'close']]
     corr.drop(corr.index[:window_size-1], inplace=True)
     corr = corr.reset_index(drop=False)
     corr = corr[corr.index % (stride) == 0]
