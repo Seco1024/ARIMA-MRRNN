@@ -19,7 +19,7 @@ from sklearn.metrics import r2_score
 
 parent_dir = os.path.abspath(os.path.join(os.getcwd(), os.path.pardir))
 
-class Transformer(object):
+class self_Attention(object):
     def __init__(self, look_back, n_features, horizon, num_transformer_blocks=4, head_size=64, num_heads=4, ff_dim=4):
         self.look_back = look_back
         self.n_features = n_features
@@ -90,7 +90,7 @@ class Transformer(object):
         self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3), loss = mse, metrics=[metrics.MSE, metrics.MAE])
 
         early_stopping = EarlyStopping(patience=50, restore_best_weights=True)
-        checkpoint_dir = os.path.join(parent_dir, f'models/{str(today)}/transformer_{self.num_transformer_blocks}_{self.head_size}_{self.num_heads}_{self.ff_dim}.h5')
+        checkpoint_dir = os.path.join(parent_dir, f'models/{str(today)}/self_Attention_{self.num_transformer_blocks}_{self.head_size}_{self.num_heads}_{self.ff_dim}.h5')
         checkpoint = ModelCheckpoint(checkpoint_dir, monitor='loss', verbose=1, save_best_only=True, mode='min')
         lr_reduction = ReduceLROnPlateau(monitor='val_loss', factor=0.2,
                               patience=10, min_lr=0.0001)
@@ -140,7 +140,7 @@ class Transformer(object):
         evaluate_df = pd.DataFrame(np.array([score_train[1], score_val[1], score_test[1], 
                                     score_train[2], score_val[2], score_test[2]]).reshape(-1, 6),
                         columns=["train_MSE", "val_MSE", "test_MSE", "train_MAE", "val_MAE", "test_MAE"])
-        evaluate_df.to_csv(os.path.join(parent_dir, f'out/Transformer_error/{str(today)}/transformer_{self.num_transformer_blocks}_{self.head_size}_{self.num_heads}_{self.ff_dim}.csv'), index=False)
+        evaluate_df.to_csv(os.path.join(parent_dir, f'out/self_Attention_error/{str(today)}/self_Attention_{self.num_transformer_blocks}_{self.head_size}_{self.num_heads}_{self.ff_dim}.csv'), index=False)
         
         
     def visualize_loss_plot(self, today):
@@ -150,4 +150,4 @@ class Transformer(object):
         plt.legend()
         plt.xlabel('# epochs')
         plt.ylabel('MSE')
-        plt.savefig(os.path.join(parent_dir, f'out/Transformer_plot/{str(today)}/transformer_{self.num_transformer_blocks}_{self.head_size}_{self.num_heads}_{self.ff_dim}.png'))
+        plt.savefig(os.path.join(parent_dir, f'out/self_Attention_plot/{str(today)}/self_Attention_{self.num_transformer_blocks}_{self.head_size}_{self.num_heads}_{self.ff_dim}.png'))

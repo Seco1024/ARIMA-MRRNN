@@ -9,20 +9,20 @@ from keras.optimizers import Adam
 from keras import regularizers, metrics, backend
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error
-from lib import transformer_tools, lstm_tools
+from lib import self_Attention_tools, lstm_tools
 import argparse
 import logging
 import os
 
-# from clearml import Task
-# task = Task.init(project_name="ARIMA-MRRNN", task_name="ARIMA-Transformer")
+from clearml import Task
+task = Task.init(project_name="ARIMA-MRRNN", task_name="ARIMA-self_Attention")
 
 logging.basicConfig(level=logging.CRITICAL)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', default=100)
 parser.add_argument('--batch', default=128)
-parser.add_argument('--model', default='Transformer')
+parser.add_argument('--model', default='Tself_Attention')
 parser.add_argument('--lookback', default=14)
 parser.add_argument('--num_transformer_blocks', default=4)
 parser.add_argument('--head_size', default=64)
@@ -73,10 +73,10 @@ test_X, test_y = X[int(len(X) * (0.7 + 0.15)):], y[int(len(X) * (0.7 + 0.15)):]
 input_shape = (train_X.shape[1], train_X.shape[2])
 
 # train
-tr = transformer_tools.Transformer(14, 8, 1, int(args.num_transformer_blocks), int(args.head_size), int(args.num_heads), int(args.ff_dim))
+tr = self_Attention_tools.self_Attention(14, 8, 1, int(args.num_transformer_blocks), int(args.head_size), int(args.num_heads), int(args.ff_dim))
 history = tr.train(train_X, train_y, today, int(args.epochs), int(args.batch))
 tr.visualize_loss_plot(history, today)
-best_model = load_model(os.path.join(parent_dir, f'models/{str(today)}/transformer_{str(args.num_transformer_blocks)}_{str(args.head_size)}_{str(args.num_heads)}_{str(args.ff_dim)}.h5'))
+best_model = load_model(os.path.join(parent_dir, f'models/{str(today)}/self_Attention_{str(args.num_transformer_blocks)}_{str(args.head_size)}_{str(args.num_heads)}_{str(args.ff_dim)}.h5'))
 tr.evaluate_model(best_model, train_X, train_y, val_X, val_y, test_X, test_y, today)
 
 _, mse_result, mae_result,_ = tr.evaluate(test_X, test_y)
