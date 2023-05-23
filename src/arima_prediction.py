@@ -7,7 +7,7 @@ from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from pmdarima import auto_arima
 from pmdarima.utils import diff_inv
 from sklearn.metrics import mean_squared_error, mean_absolute_error
-from lib import arima_tools
+from utils import arima_tools
 import random
 import re
 import argparse

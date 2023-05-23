@@ -4,7 +4,7 @@ import os
 import functools as ft
 import itertools
 import argparse
-from lib import preprocess
+from utils import preprocess
 
 parent_dir = os.path.abspath(os.path.join(os.getcwd(), os.path.pardir))
 parser = argparse.ArgumentParser()
