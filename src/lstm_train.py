@@ -1,8 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
-from keras.models import Sequential, load_model
-from keras.layers import Dense, Dropout, LSTM
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau, TensorBoard
 from sklearn.preprocessing import MinMaxScaler
 from utils import lstm_tools
@@ -51,7 +48,7 @@ for file in os.listdir(files_dir):
     
 # scaler = MinMaxScaler()
 X, y, train_X, train_y, val_X, val_y, test_X, test_y = [],[],[],[],[],[],[],[]
-lookback = args.lookback
+lookback = int(args.lookback)
 future_n = 1
 
 for pair_corr in data:

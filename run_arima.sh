@@ -13,21 +13,22 @@ if [ ${preprocess} == ${TRUE} ];then
 fi
 
 cd ../
-dataset_n=$(ls ./data/preprocessed_data | wc -l)
-read -p "欲執行 VARMA/ARIMA 處理的次數比例: " ratio
-n=$(echo "${dataset_n} * ${ratio}" | bc)
-paths=$(ls ./data/preprocessed_data | shuf | head -n ${n%.*})
-files=()
-for p in $paths; do
-    files+=("$(basename "$p")")
-done
+python ./main.py
+# dataset_n=$(ls ./data/preprocessed_data | wc -l)
+# read -p "欲執行 VARMA/ARIMA 處理的次數比例: " ratio
+# n=$(echo "${dataset_n} * ${ratio}" | bc)
+# paths=$(ls ./data/preprocessed_data | shuf | head -n ${n%.*})
+# files=()
+# for p in $paths; do
+#     files+=("$(basename "$p")")
+# done
 
-cd ./src
-read -p "test set ratio: " test_ratio
-read -p "window size: " window
-for f in ${files[@]}; do
-    echo "進行 ARIMA 處理: ${f}..."
-    python ./arima_prediction.py --filename=${f} --testratio=${test_ratio} --window_size=${window}
-done
-python ./residual.py --window=${window}
-echo "ARIMA 執行完畢"
+# cd ./src
+# read -p "test set ratio: " test_ratio
+# read -p "window size: " window
+# for f in ${files[@]}; do
+#     echo "進行 ARIMA 處理: ${f}..."
+#     python ./arima_prediction.py --filename=${f} --testratio=${test_ratio} --window_size=${window}
+# done
+# python ./residual.py --window=${window}
+# echo "ARIMA 執行完畢"

@@ -6,7 +6,6 @@ from keras.layers import Dense, Dropout, LSTM
 from keras.losses import MeanSquaredError
 from keras.optimizers import Adam
 from keras import regularizers, metrics
-from sklearn.preprocessing import MinMaxScaler
 import os
 import datetime
 import re
@@ -32,26 +31,26 @@ class lstm_model(object):
         self.lr = lr
 
     def build(self, x_shape, y_shape):
-        model = Sequential()
+        self.model = Sequential()
         if self.is_doubled_layer:
-            model.add(LSTM(self.neurons, input_shape=x_shape, return_sequences=True))
-            model.add(Dropout(self.dropout))
-            model.add(LSTM(self.neurons, input_shape=x_shape, return_sequences=True))
-            model.add(Dropout(self.dropout))
+            self.model.add(LSTM(self.neurons, input_shape=x_shape, return_sequences=True))
+            self.model.add(Dropout(self.dropout))
+            self.model.add(LSTM(self.neurons, input_shape=x_shape, return_sequences=True))
+            self.model.add(Dropout(self.dropout))
         else:
-            model.add(LSTM(self.neurons, input_shape=x_shape))
-            model.add(Dropout(self.dropout))
-        model.add(Dense(x_shape[1], 'relu',  kernel_regularizer=regularizers.l2(1e-4)))
-        model.add(Dense(y_shape, 'linear'))
+            self.model.add(LSTM(self.neurons, input_shape=x_shape))
+            self.model.add(Dropout(self.dropout))
+        self.model.add(Dense(x_shape[1], 'relu',  kernel_regularizer=regularizers.l2(1e-4)))
+        self.model.add(Dense(y_shape, 'linear'))
         
-        adam = Adam(lr=self.lr)
+        adam = Adam(learning_rate=self.lr)
         mse = MeanSquaredError()
-        model.compile(optimizer=adam, loss=mse, metrics=[metrics.MSE, metrics.MAE])
-        return model
+        self.model.compile(optimizer=adam, loss=mse, metrics=[metrics.MSE, metrics.MAE])
+        return self.model
     
     def restore(self, today):
         self.best_model = load_model(os.path.join(parent_dir, f'models/{str(today)}/LSTM_{str(self.is_doubled_layer)}_{str(self.neurons)}_{str(self.dropout)}_{str(self.lr)}.h5'))
-        adam = Adam(lr=self.lr)
+        adam = Adam(learning_rate=self.lr)
         mse = MeanSquaredError()
         self.best_model.compile(optimizer=adam, loss=mse, metrics=[metrics.MSE, metrics.MAE])
         
@@ -87,5 +86,5 @@ class lstm_model(object):
         plt.legend()
         plt.xlabel('year')
         plt.ylabel('Correlation Coefficient')
-        plt.title(f"ARIMA-ARIMA Prediction on {ticker1}-{ticker2}(neurons={self.neurons}, {today})")
+        plt.title(f"ARIMA-LSTM Prediction on {ticker1}-{ticker2}(neurons={self.neurons}, {today})")
         plt.savefig(os.path.join(parent_dir, f'out/hybrid_model_plot/{str(today)}/LSTM_{str(self.is_doubled_layer)}_{str(self.neurons)}_{str(self.dropout)}_{str(self.lr)}_({ticker1}-{ticker2}).png'))

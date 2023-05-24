@@ -1,13 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
-from keras.models import Sequential, load_model
-from keras.layers import Dense, Dropout, LSTM
-from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau, TensorBoard
-from keras.losses import MeanSquaredError
-from keras.optimizers import Adam
-from keras import regularizers, metrics, backend
-from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from utils import lstm_tools
 import random
@@ -21,7 +13,6 @@ logging.basicConfig(level=logging.CRITICAL)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', default='LSTM')
 parser.add_argument('--neurons', default=32, help="number of neurons")
 parser.add_argument('--double_layer', default=0, help="is double layered")
 parser.add_argument('--dropout', default=0.25, help="Dropout Rate")
