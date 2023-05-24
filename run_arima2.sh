@@ -9,7 +9,7 @@ read -p "test set ratio: " test_ratio
 read -p "window size: " window
 
 cd ./src
-for ((i=989; i>500; i--)); do
+for ((i=104; i>50; i--)); do
     echo "第${i}筆   進行 ARIMA 處理: ${files[$i]}..."
     python ./arima_prediction.py --filename=${files[$i]} --testratio=${test_ratio} --window_size=${window}
 done

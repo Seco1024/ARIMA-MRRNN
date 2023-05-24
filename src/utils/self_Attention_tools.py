@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
-import datetime
 from time import time
 import json
 import logging
@@ -25,30 +24,25 @@ class self_Attention(object):
         self.n_features = n_features
         self.horizon = horizon
 
+        self.num_transformer_blocks=num_transformer_blocks
         self.head_size=head_size
         self.num_heads=num_heads
         self.ff_dim=ff_dim
-        self.num_transformer_blocks=num_transformer_blocks
         self.mlp_units=[128]
         self.mlp_dropout=0.4
         self.dropout=0.25
 
-
     def transformer_encoder(self, inputs):
-        # Normalization and Attention
         x = layers.LayerNormalization(epsilon=1e-6)(inputs)
         x = layers.MultiHeadAttention(key_dim=self.head_size, num_heads=self.num_heads, dropout=self.dropout)(x, x)
         x = layers.Dropout(self.dropout)(x)
-        
         res = x + inputs
 
-        # Feed Forward Part
         x = layers.LayerNormalization(epsilon=1e-6)(res)
         x = layers.Conv1D(filters=self.ff_dim, kernel_size=1, activation="relu")(x)
         x = layers.Dropout(self.dropout)(x)
         x = layers.Conv1D(filters=inputs.shape[-1], kernel_size=1)(x)
         return x + res
-
 
     def build(self):
         inputs = keras.Input(shape=(self.look_back, self.n_features))
@@ -61,45 +55,27 @@ class self_Attention(object):
             x = layers.Dense(dim, activation="relu")(x)
             x = layers.Dropout(self.mlp_dropout)(x)
 
-        # output layer
         outputs = layers.Dense(self.horizon)(x)
         return keras.Model(inputs, outputs)
-
 
     def restore(self, filepath):
         self.best_model = load_model(filepath)
         self.best_model.compile(optimizer='adam', loss = ['mse'], metrics=[metrics.MSE, metrics.MAE])
 
-
-    def train(self, X_train, y_train, today, epochs=100, batch_size=64):
-        """ Training the network
-        :param X_train: training feature vectors [#batch,#number_of_timesteps,#number_of_features]
-        :type 3-D Numpy array of float values
-        :param Y_train: training target vectors
-        :type 2-D Numpy array of float values
-        :param epochs: number of training epochs
-        :type int
-        :param batch_size: size of batches used at each forward/backward propagation
-        :type int
-        :return -
-        :raises: -
-        """
-
+    def train(self, X_train, y_train, today, epochs=200, batch_size=64):
         self.model = self.build()
         mse = MeanSquaredError()
-        self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3), loss = mse, metrics=[metrics.MSE, metrics.MAE])
+        self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4), loss = mse, metrics=[metrics.MSE, metrics.MAE])
 
         early_stopping = EarlyStopping(patience=50, restore_best_weights=True)
         checkpoint_dir = os.path.join(parent_dir, f'models/{str(today)}/self_Attention_{self.num_transformer_blocks}_{self.head_size}_{self.num_heads}_{self.ff_dim}.h5')
         checkpoint = ModelCheckpoint(checkpoint_dir, monitor='loss', verbose=1, save_best_only=True, mode='min')
-        lr_reduction = ReduceLROnPlateau(monitor='val_loss', factor=0.2,
-                              patience=10, min_lr=0.0001)
 
         self.history = self.model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size,
                              validation_split=0.2,
                              verbose=1,
-                             callbacks=[early_stopping, checkpoint, lr_reduction])
-                             #callbacks=[PlotLossesKeras(), early_stopping_monitor, checkpoint])
+                             callbacks=[early_stopping, checkpoint])
+        
         return self.history
 
 

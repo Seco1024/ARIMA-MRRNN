@@ -22,7 +22,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', default=100)
 parser.add_argument('--batch', default=128)
-parser.add_argument('--model', default='Tself_Attention')
+parser.add_argument('--model', default='self_Attention')
 parser.add_argument('--lookback', default=14)
 parser.add_argument('--num_transformer_blocks', default=4)
 parser.add_argument('--head_size', default=64)
@@ -55,7 +55,7 @@ for file in os.listdir(files_dir):
     
 # scaler = MinMaxScaler()
 X, y, train_X, train_y, val_X, val_y, test_X, test_y = [],[],[],[],[],[],[],[]
-lookback = args.lookback
+lookback = int(args.lookback)
 future_n = 1
 
 for pair_corr in data:
@@ -73,7 +73,7 @@ test_X, test_y = X[int(len(X) * (0.7 + 0.15)):], y[int(len(X) * (0.7 + 0.15)):]
 input_shape = (train_X.shape[1], train_X.shape[2])
 
 # train
-tr = self_Attention_tools.self_Attention(14, 8, 1, int(args.num_transformer_blocks), int(args.head_size), int(args.num_heads), int(args.ff_dim))
+tr = self_Attention_tools.self_Attention(lookback, 8, future_n, int(args.num_transformer_blocks), int(args.head_size), int(args.num_heads), int(args.ff_dim))
 history = tr.train(train_X, train_y, today, int(args.epochs), int(args.batch))
 tr.visualize_loss_plot(history, today)
 best_model = load_model(os.path.join(parent_dir, f'models/{str(today)}/self_Attention_{str(args.num_transformer_blocks)}_{str(args.head_size)}_{str(args.num_heads)}_{str(args.ff_dim)}.h5'))
