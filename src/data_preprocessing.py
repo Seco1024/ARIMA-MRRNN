@@ -17,10 +17,11 @@ args = parser.parse_args()
 # 合併表格
 raw_data_path = os.path.join(parent_dir, 'data/raw_data')
 etf50_list = pd.read_csv(raw_data_path + '/etf50_tickers.csv', encoding='Big5').stock_id.tolist()
+etf50_filtered_list = pd.read_csv(raw_data_path + '/etf50_filtered_tickers.csv').iloc[:, 1].tolist()
 subdir_dict = {'Major_Investor':'mii', 'Margin_Short_Sell':'mtss', 'Technical':'technical'}
 stock_list = {}
 
-for ticker in etf50_list:
+for ticker in etf50_filtered_list:
     subfile_list = []
     for subdir in  subdir_dict.keys():
         subfile_path = raw_data_path + f'/{subdir}/{ticker}_{subdir_dict[subdir]}.csv' 
@@ -35,6 +36,10 @@ for ticker in etf50_list:
 stock_list, removed_list = preprocess.removeNAvalue(stock_list, float(args.drop))
 for key in stock_list.keys():
     stock_list[key] = stock_list[key].drop('stock_id', axis=1)
+    
+print("removed:")
+for i in removed_list:
+    print(i)
 
 # 移動窗口取相關係數
 window_size = int(args.window)

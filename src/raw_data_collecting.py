@@ -67,11 +67,21 @@ result_df = result_df.drop_duplicates(subset=['stock_name'])
 result_df = result_df.reset_index(drop=True)
 result_df.to_csv(os.path.join(parent_dir, "data/raw_data/etf50_tickers.csv"), index=False, header=True, encoding='big5')
 
-# get technical data
 etf50_df = pd.read_csv(os.path.join(parent_dir, "data/raw_data/etf50_tickers.csv"), encoding="big5")
-individual_technical_dataset = []
+info_df = pd.read_csv(os.path.join(parent_dir, "data/raw_data/info.csv"))
+target_id = []
 
 for id in etf50_df["stock_id"]:
+    flag = 0
+    filtered_rows = info_df[info_df['股票代碼'] == str(id)]
+    for i in range(len(filtered_rows)):
+        if filtered_rows.iloc[i, 0] == "電子工業":
+            target_id.append(str(id))
+            break
+
+# get technical data
+individual_technical_dataset = []
+for id in target_id:
     technical_params = {
         "dataset": "TaiwanStockPrice",
         "data_id": id,
@@ -92,7 +102,7 @@ technical_df.to_csv(os.path.join(parent_dir, 'data/raw_data/Technical/etf50_tech
 
 # get margin and short sell data
 individual_mtss_dataset = []
-for id in etf50_df["stock_id"]:
+for id in target_id:
     mtss_params = {
         "dataset": "TaiwanStockMarginPurchaseShortSale",
         "data_id": id,
@@ -115,7 +125,7 @@ mtss_df.to_csv(os.path.join(parent_dir, 'data/raw_data/Margin_Short_Sell/etf50_m
 # get major investor institution data
 individual_mii_dataset = []
 
-for id in etf50_df["stock_id"]:
+for id in target_id:
     mii_params = {
         "dataset": "TaiwanStockInstitutionalInvestorsBuySell",
         "data_id": id,
@@ -153,4 +163,6 @@ mii_df = pd.concat(individual_mii_dataset)
 mii_df = mii_df.reset_index(drop=True)
 mii_df.to_csv(os.path.join(parent_dir, 'data/raw_data/Major_Investor/etf50_mii.csv'))
 
+target_id = pd.DataFrame(target_id)
+target_id.to_csv(os.path.join(parent_dir, 'data/raw_data/etf50_filtered_tickers.csv'))
 print("Complete Data Collecting")
