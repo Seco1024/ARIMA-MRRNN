@@ -109,5 +109,5 @@ class self_Attention(object):
         plt.legend()
         plt.xlabel('year')
         plt.ylabel('Correlation Coefficient')
-        plt.title(f"ARIMA-Self Attention Prediction on {ticker1}-{ticker2}(neurons={self.neurons}, {today})")
+        plt.title(f"ARIMA-Self Attention Prediction on {ticker1}-{ticker2}({today})")
         plt.savefig(os.path.join(parent_dir, f'out/hybrid_model_plot/{str(today)}/Self Attention_{self.num_transformer_blocks}_{self.head_size}_{self.num_heads}_{self.ff_dim}_{self.dropout}_{self.lr}.png'))
