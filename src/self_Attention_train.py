@@ -28,7 +28,7 @@ args = parser.parse_args()
 today = lstm_tools.get_today()
 parent_dir = os.path.abspath(os.path.join(os.getcwd(), os.path.pardir))
 files_dir = os.path.join(parent_dir, f'data/VARMA_ARIMA/after_ARIMA/')
-if not os.path.exists(os.path.join(parent_dir, f'models/{str(today)}')):
+if not os.path.exists(os.path.join(parent_dir, f'out/self_Attention_error/{str(today)}')):
     os.makedirs(os.path.join(parent_dir, f'models/{str(today)}'))
     os.makedirs(os.path.join(parent_dir, f'out/self_Attention_error/{str(today)}'))
     os.makedirs(os.path.join(parent_dir, f'out/self_Attention_plot/{str(today)}'))
