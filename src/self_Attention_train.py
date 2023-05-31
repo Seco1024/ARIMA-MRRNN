@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
-from utils import self_Attention_tools, lstm_tools
+from utils import rnn_tools, self_Attention_tools
 import argparse
 import logging
 import os
@@ -25,7 +25,7 @@ parser.add_argument('--lr', default=0.0005, help="learning rate")
 parser.add_argument('--lookback', default=14)
 args = parser.parse_args()
 
-today = lstm_tools.get_today()
+today = rnn_tools.get_today()
 parent_dir = os.path.abspath(os.path.join(os.getcwd(), os.path.pardir))
 files_dir = os.path.join(parent_dir, f'data/VARMA_ARIMA/after_ARIMA/')
 if not os.path.exists(os.path.join(parent_dir, f'out/self_Attention_error/{str(today)}')):

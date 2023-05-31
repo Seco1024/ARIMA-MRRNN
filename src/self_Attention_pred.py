@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error, mean_absolute_error
-from utils import lstm_tools, self_Attention_tools
+from utils import rnn_tools, self_Attention_tools
 import random
 import datetime
 import argparse
@@ -25,7 +25,7 @@ args = parser.parse_args()
 parent_dir = os.path.abspath(os.path.join(os.getcwd(), os.path.pardir))
 files_dir = os.path.join(parent_dir, f'data/VARMA_ARIMA/after_ARIMA/')
 tmp_dir = os.path.join(parent_dir, 'data/VARMA_ARIMA_prediction/after_ARIMA/')
-today = lstm_tools.get_today()
+today = rnn_tools.get_today()
 if not os.path.exists(os.path.join(parent_dir, f'models/{str(today)}')):
     today = datetime.datetime.strptime(today, '%m%d') - datetime.timedelta(days=1)
     today = datetime.datetime.strftime(today, '%m%d')
@@ -77,5 +77,5 @@ for file in os.listdir(tmp_dir):
         best_sa_model.visualize_prediction_plot(hybrid_prediction, original, arima_prediction, timestamps, today, file)
 
 df_error = pd.DataFrame(columns=['ARIMA prediction MSE', 'ARIMA prediction MAE', 'ARIMA_self_Attention prediction MSE', 'ARIMA_self_Attention prediction MAE'])
-df_error.loc[0] = lstm_tools.mean(arima_prediction_mse), lstm_tools.mean(arima_prediction_mae), lstm_tools.mean(hybrid_prediction_mse), lstm_tools.mean(hybrid_prediction_mae)
+df_error.loc[0] = rnn_tools.mean(arima_prediction_mse), rnn_tools.mean(arima_prediction_mae), rnn_tools.mean(hybrid_prediction_mse), rnn_tools.mean(hybrid_prediction_mae)
 df_error.to_csv(os.path.join(parent_dir, f'out/hybrid_model_error/{str(today)}/ARIMA-self_Attention_{args.num_transformer_blocks}_{args.head_size}_{args.num_heads}_{args.ff_dim}_{args.dropout}_{args.lr}.csv'))
