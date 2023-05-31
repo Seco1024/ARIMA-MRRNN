@@ -10,7 +10,7 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from torch.utils.data import DataLoader
-from utils import lstm_tools
+from utils import rnn_tools
 from utils.mrrnn_tools import MutuallyRecursiveRNN, regularization_loss, list_to_tensor, shuffle
 from clearml import Task
 
@@ -22,6 +22,7 @@ logging.basicConfig(level=logging.CRITICAL)
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 parser = argparse.ArgumentParser()
+parser.add_argument("--cell", default='rnn')
 parser.add_argument("--epochs", default=500)
 parser.add_argument("--batch", default=64)
 parser.add_argument("--neurons", default=32, help="number of neurons")
@@ -37,9 +38,9 @@ neurons = int(args.neurons)
 dropout = float(args.dropout)
 lr = float(args.lr)
 
-today = lstm_tools.get_today()
+today = rnn_tools.get_today()
 parent_dir = os.path.abspath(os.path.join(os.getcwd(), os.path.pardir))
-files_dir = os.path.join(parent_dir, f"data/VARMA_ARIMA/after_ARIMA/")
+files_dir = os.path.join(parent_dir, f"data/VARMA_ARIMA/after_ARIMA_full/")
 if not os.path.exists(os.path.join(parent_dir, f"models/{str(today)}")):
     os.makedirs(os.path.join(parent_dir, f"models/{str(today)}"))
     os.makedirs(os.path.join(parent_dir, f"out/MRRNN_error/{str(today)}"))
@@ -86,6 +87,7 @@ mrrnn = MutuallyRecursiveRNN(input_shape[1], 1, input_shape[1] - 1,
     int(int(args.neurons) / input_shape[1]),
     int(int(args.neurons) * (input_shape[1] - 1) / input_shape[1]),
     float(args.dropout),
+    cell = args.cell
 )
 
 adam_optimizer = optim.Adam(mrrnn.parameters(), lr=float(lr))
@@ -139,7 +141,7 @@ for epoch in range(int(epochs)):
         if valid_loss < best_loss:
             best_loss = valid_loss
             torch.save(mrrnn.state_dict(), 
-                       os.path.join(parent_dir,f"models/{str(today)}/MRRNN_{str(neurons)}_{str(dropout)}.pt"))
+                       os.path.join(parent_dir,f"models/{str(today)}/MRRNN_{args.cell}_{str(neurons)}_{str(dropout)}.pt"))
 
         print(f"Epoch {epoch+1}: training loss: {training_loss}, Val Loss: {valid_loss}")
 
@@ -148,7 +150,7 @@ for epoch in range(int(epochs)):
 
 mrrnn.visualize_loss_plot(training_loss_list, valid_loss_list, today)
 mrrnn.load_state_dict(torch.load(os.path.join(parent_dir,
-            f"models/{str(today)}/MRRNN_{args.neurons}_{args.dropout}.pt")))
+            f"models/{str(today)}/MRRNN_{args.cell}_{args.neurons}_{args.dropout}.pt")))
 
 # ================== validating phase
 mrrnn.eval()
@@ -196,4 +198,4 @@ with torch.no_grad():
 evaluate_df = pd.DataFrame(np.array([train_mse, val_mse, test_mse, 
                                     train_mae, val_mae, test_mae]).reshape(-1, 6),
                         columns=["train_MSE", "val_MSE", "test_MSE", "train_MAE", "val_MAE", "test_MAE"])
-evaluate_df.to_csv(os.path.join(parent_dir, f'out/MRRNN_error/{str(today)}/MRRNN_{str(args.neurons)}_{str(args.dropout)}.csv'), index=False)
+evaluate_df.to_csv(os.path.join(parent_dir, f'out/MRRNN_error/{str(today)}/MRRNN_{args.cell}_{str(args.neurons)}_{str(args.dropout)}.csv'), index=False)

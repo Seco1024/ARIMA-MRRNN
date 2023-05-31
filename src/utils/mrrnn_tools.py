@@ -11,7 +11,7 @@ import re
 parent_dir = os.path.abspath(os.path.join(os.getcwd(), os.path.pardir))
 
 class MutuallyRecursiveRNN(nn.Module):
-    def __init__(self, features_dim, target_dim, explanatory_dim, target_embedding_dim, explanatory_embedding_dim, dropout_rate):
+    def __init__(self, features_dim, target_dim, explanatory_dim, target_embedding_dim, explanatory_embedding_dim, dropout_rate, cell='rnn'):
         super(MutuallyRecursiveRNN, self).__init__()
         
         self.price_embedding_dim = target_embedding_dim
@@ -20,12 +20,17 @@ class MutuallyRecursiveRNN(nn.Module):
         self.price_dim = target_dim
         self.metrics_dim = explanatory_dim     
         self.dropout = dropout_rate 
+        self.cell = cell
         
         self.price_input_dim = self.metrics_embedding_dim + self.features_dim
         self.metrics_input_dim = self.price_embedding_dim + self.features_dim
         
-        self.price_rnn = nn.RNNCell(self.price_input_dim, self.price_embedding_dim)
-        self.metrics_rnn = nn.RNNCell(self.metrics_input_dim, self.metrics_embedding_dim)
+        if cell == 'rnn':
+            self.price_rnn = nn.RNNCell(self.price_input_dim, self.price_embedding_dim)
+            self.metrics_rnn = nn.RNNCell(self.metrics_input_dim, self.metrics_embedding_dim)
+        elif cell == 'lstm':
+            self.price_rnn = nn.LSTMCell(self.price_input_dim, self.price_embedding_dim)
+            self.metrics_rnn = nn.LSTMCell(self.metrics_input_dim, self.metrics_embedding_dim)
         
         self.price_linear_layer = nn.Linear(self.price_embedding_dim, self.price_dim)
         self.metrics_linear_layer = nn.Linear(self.metrics_embedding_dim, self.metrics_dim)
@@ -36,13 +41,26 @@ class MutuallyRecursiveRNN(nn.Module):
         seq_length = len(input_seq[0])
         self.price_embedding = torch.zeros(batch_size, self.price_embedding_dim)
         self.metrics_embedding = torch.zeros(batch_size, self.metrics_embedding_dim)
+        if self.cell == 'lstm':
+            self.price_hidden_state = torch.zeros(batch_size, self.price_embedding_dim)
+            self.price_cell_state = torch.zeros(batch_size, self.price_embedding_dim)
+            self.metrics_hidden_state = torch.zeros(batch_size, self.metrics_embedding_dim)
+            self.metrics_cell_state = torch.zeros(batch_size, self.metrics_embedding_dim)
         
         for i in range(seq_length):
-            self.metrics_embedding = self.metrics_rnn(torch.cat((input_seq[:, i, :], self.price_embedding), dim=1), self.metrics_embedding)
-            self.price_embedding = self.price_rnn(torch.cat((input_seq[:, i, :], self.metrics_embedding), dim=1), self.price_embedding)
+            if self.cell == 'rnn':
+                self.metrics_embedding = self.metrics_rnn(torch.cat((input_seq[:, i, :], self.price_embedding), dim=1), self.metrics_embedding)
+                self.price_embedding = self.price_rnn(torch.cat((input_seq[:, i, :], self.metrics_embedding), dim=1), self.price_embedding)
+            elif self.cell == 'lstm':
+                self.metrics_hidden_state, self.metrics_cell_state = self.metrics_rnn(torch.cat((input_seq[:, i, :], self.price_hidden_state), dim=1), (self.metrics_hidden_state, self.metrics_cell_state))
+                self.price_hidden_state, self.price_cell_state = self.price_rnn(torch.cat((input_seq[:, i, :], self.metrics_hidden_state), dim=1), (self.price_hidden_state, self.price_cell_state))
         
-        metrics_pred = self.metrics_linear_layer(self.dropout_layer(self.metrics_embedding))
-        price_pred = self.price_linear_layer(self.dropout_layer(self.price_embedding))
+        if self.cell == 'rnn':
+            metrics_pred = self.metrics_linear_layer(self.dropout_layer(self.metrics_embedding))
+            price_pred = self.price_linear_layer(self.dropout_layer(self.price_embedding))
+        elif self.cell == 'lstm':
+            metrics_pred = self.metrics_linear_layer(self.dropout_layer(self.metrics_hidden_state))
+            price_pred = self.price_linear_layer(self.dropout_layer(self.price_hidden_state))
         
         return price_pred, metrics_pred
     
@@ -53,7 +71,7 @@ class MutuallyRecursiveRNN(nn.Module):
         plt.legend()
         plt.xlabel('# epochs')
         plt.ylabel('MSE')
-        plt.savefig(os.path.join(parent_dir, f'out/MRRNN_plot/{str(today)}/MRRNN_{str(self.price_embedding_dim * self.features_dim)}_{str(self.dropout)}.png'))
+        plt.savefig(os.path.join(parent_dir, f'out/MRRNN_plot/{str(today)}/MRRNN_{self.cell}_{str(self.price_embedding_dim * self.features_dim)}_{str(self.dropout)}.png'))
 
 def regularization_loss(params, mode='l2', lambda_reg=0.001):
     l1_reg = torch.tensor(0., requires_grad=True)
