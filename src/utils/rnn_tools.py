@@ -98,4 +98,4 @@ class rnn_model(object):
         plt.xlabel('year')
         plt.ylabel('Correlation Coefficient')
         plt.title(f"ARIMA-{self.cell} Prediction on {ticker1}-{ticker2}(neurons={self.neurons}, {today})")
-        plt.savefig(os.path.join(parent_dir, f'out/hybrid_model_plot/{str(today)}/{self.cell}_{str(self.is_doubled_layer)}_{str(self.neurons)}_{str(self.dropout)}_{str(self.lr)}_({ticker1}-{ticker2}).png'))
+        plt.savefig(os.path.join(parent_dir, f'out/hybrid_model_plot/{str(today)}/ARIMA-{self.cell}_{str(self.is_doubled_layer)}_{str(self.neurons)}_{str(self.dropout)}_{str(self.lr)}_({ticker1}-{ticker2}).png'))

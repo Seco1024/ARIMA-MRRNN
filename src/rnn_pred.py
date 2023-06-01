@@ -12,6 +12,17 @@ random.seed()
 logging.basicConfig(level=logging.CRITICAL)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
+parent_dir = os.path.abspath(os.path.join(os.getcwd(), os.path.pardir))
+files_dir = os.path.join(parent_dir, f'data/VARMA_ARIMA/after_ARIMA_full/')
+tmp_dir = os.path.join(parent_dir, 'data/VARMA_ARIMA_prediction/after_ARIMA_full/')
+pred_target = os.listdir(files_dir)[int(len(os.listdir(files_dir))*0.9):]
+observed_target = ['2303_2379.csv', '2303_2308.csv', '2308_2357.csv', '2317_2379.csv', '2382_2454.csv']
+
+today = rnn_tools.get_today()
+if not os.path.exists(os.path.join(parent_dir, f'models/{str(today)}')):
+    today = datetime.datetime.strptime(today, '%m%d') - datetime.timedelta(days=1)
+    today = datetime.datetime.strftime(today, '%m%d')
+    
 parser = argparse.ArgumentParser()
 parser.add_argument('--cell', default='LSTM')
 parser.add_argument('--neurons', default=32, help="number of neurons")
@@ -19,16 +30,8 @@ parser.add_argument('--double_layer', default=0, help="is double layered")
 parser.add_argument('--dropout', default=0.5, help="Dropout Rate")
 parser.add_argument('--lr', default=0.0005, help="learning rate")
 parser.add_argument('--lookback', default=14)
+parser.add_argument("--date", default=today)
 args = parser.parse_args()
-    
-parent_dir = os.path.abspath(os.path.join(os.getcwd(), os.path.pardir))
-files_dir = os.path.join(parent_dir, f'data/VARMA_ARIMA/after_ARIMA_full/')
-tmp_dir = os.path.join(parent_dir, 'data/VARMA_ARIMA_prediction/after_ARIMA_full/')
-pred_target = os.listdir(files_dir)[int(len(os.listdir(files_dir))*0.9):]
-today = rnn_tools.get_today()
-if not os.path.exists(os.path.join(parent_dir, f'models/{str(today)}')):
-    today = datetime.datetime.strptime(today, '%m%d') - datetime.timedelta(days=1)
-    today = datetime.datetime.strftime(today, '%m%d')
     
 hybrid_prediction_mse, hybrid_prediction_mae, arima_prediction_mae, arima_prediction_mse = [], [], [], []
 lookback = int(args.lookback)
@@ -36,7 +39,7 @@ future_n = 1
 
 # load model
 best_rnn_model = rnn_tools.rnn_model(int(args.double_layer), int(args.neurons), float(args.dropout), float(args.lr), cell=args.cell)
-best_rnn_model.restore(today)
+best_rnn_model.restore(args.date)
 
 for file in pred_target:
     residual_file_path = os.path.join(files_dir, file)
@@ -73,9 +76,9 @@ for file in pred_target:
     hybrid_prediction_mse.append(mean_squared_error(original, hybrid_prediction))
     hybrid_prediction_mae.append(mean_absolute_error(original, hybrid_prediction))
     
-    if file == '3008_3034.csv' or file == '2887_2891.csv':
-        best_rnn_model.visualize_prediction_plot(hybrid_prediction, original, arima_prediction, timestamps, today, file)
+    if file in observed_target:
+        best_rnn_model.visualize_prediction_plot(hybrid_prediction, original, arima_prediction, timestamps, args.date, file)
 
 df_error = pd.DataFrame(columns=['ARIMA prediction MSE', 'ARIMA prediction MAE', f'ARIMA_{args.cell} prediction MSE', f'ARIMA_{args.cell} prediction MAE'])
 df_error.loc[0] = rnn_tools.mean(arima_prediction_mse), rnn_tools.mean(arima_prediction_mae), rnn_tools.mean(hybrid_prediction_mse), rnn_tools.mean(hybrid_prediction_mae)
-df_error.to_csv(os.path.join(parent_dir, f'out/hybrid_model_error/{str(today)}/ARIMA-{args.cell}_{str(args.double_layer)}_{str(args.neurons)}_{str(args.dropout)}_{str(args.lr)}.csv'))
+df_error.to_csv(os.path.join(parent_dir, f'out/hybrid_model_error/{str(args.date)}/ARIMA-{args.cell}_{str(args.double_layer)}_{str(args.neurons)}_{str(args.dropout)}_{str(args.lr)}.csv'))

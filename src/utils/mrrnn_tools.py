@@ -72,6 +72,18 @@ class MutuallyRecursiveRNN(nn.Module):
         plt.xlabel('# epochs')
         plt.ylabel('MSE')
         plt.savefig(os.path.join(parent_dir, f'out/MRRNN_plot/{str(today)}/MRRNN_{self.cell}_{str(self.price_embedding_dim * self.features_dim)}_{str(self.dropout)}.png'))
+        
+    def visualize_prediction_plot(self, hybrid_prediction, original, arima_prediction, timestamps, today, file):
+        plt.figure()
+        ticker1, ticker2 = re.findall(r"\d+", str(file))[0], re.findall(r"\d+", str(file))[1]
+        plt.plot(timestamps, hybrid_prediction, label= f'ARIMA-MRRNN({self.cell}) Predicted Close')
+        plt.plot(timestamps, original, label='Original Close')
+        plt.plot(timestamps, arima_prediction, label='ARIMA Predicted Close')
+        plt.legend()
+        plt.xlabel('year')
+        plt.ylabel('Correlation Coefficient')
+        plt.title(f"ARIMA-MRRNN({self.cell}) Prediction on {ticker1}-{ticker2}(# embeddings={str(self.price_embedding_dim * self.features_dim)}, {today})")
+        plt.savefig(os.path.join(parent_dir, f'out/hybrid_model_plot/{str(today)}/ARIMA-MRRNN({self.cell})_{str(self.price_embedding_dim * self.features_dim)}__{str(self.dropout)}_({ticker1}-{ticker2}).png'))
 
 def regularization_loss(params, mode='l2', lambda_reg=0.001):
     l1_reg = torch.tensor(0., requires_grad=True)
