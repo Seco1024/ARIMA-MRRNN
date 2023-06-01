@@ -49,7 +49,7 @@ mrrnn = MutuallyRecursiveRNN(features_dim, 1, features_dim - 1,
     int(int(args.neurons) / features_dim),
     int(int(args.neurons) * (features_dim - 1) / features_dim),
     float(args.dropout),
-    cell='lstm'
+    cell=args.cell
 )
 mrrnn.load_state_dict(torch.load(os.path.join(parent_dir,
             f"models/{str(args.date)}/MRRNN_{args.cell}_{args.neurons}_{args.dropout}.pt")))
