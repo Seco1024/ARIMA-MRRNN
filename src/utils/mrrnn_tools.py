@@ -11,7 +11,7 @@ import re
 parent_dir = os.path.abspath(os.path.join(os.getcwd(), os.path.pardir))
 
 class MutuallyRecursiveRNN(nn.Module):
-    def __init__(self, features_dim, target_dim, explanatory_dim, target_embedding_dim, explanatory_embedding_dim, dropout_rate, cell='rnn'):
+    def __init__(self, features_dim, target_dim, explanatory_dim, target_embedding_dim, explanatory_embedding_dim, dropout_rate, cell='lstm', double_layer=False):
         super(MutuallyRecursiveRNN, self).__init__()
         
         self.price_embedding_dim = target_embedding_dim
@@ -21,6 +21,7 @@ class MutuallyRecursiveRNN(nn.Module):
         self.metrics_dim = explanatory_dim     
         self.dropout = dropout_rate 
         self.cell = cell
+        self.double_layer = double_layer
         
         self.price_input_dim = self.metrics_embedding_dim + self.features_dim
         self.metrics_input_dim = self.price_embedding_dim + self.features_dim
@@ -31,7 +32,21 @@ class MutuallyRecursiveRNN(nn.Module):
         elif cell == 'lstm':
             self.price_rnn = nn.LSTMCell(self.price_input_dim, self.price_embedding_dim)
             self.metrics_rnn = nn.LSTMCell(self.metrics_input_dim, self.metrics_embedding_dim)
-        
+        elif cell == 'gru':
+            self.price_rnn = nn.GRUCell(self.price_input_dim, self.price_embedding_dim)
+            self.metrics_rnn = nn.GRUCell(self.metrics_input_dim, self.metrics_embedding_dim)
+            
+        if self.double_layer == True:
+            if cell == 'rnn':
+                self.price_rnn2 = nn.RNNCell(self.price_input_dim, self.price_embedding_dim)
+                self.metrics_rnn2 = nn.RNNCell(self.metrics_input_dim, self.metrics_embedding_dim)
+            elif cell == 'lstm':
+                self.price_rnn2 = nn.LSTMCell(self.price_input_dim, self.price_embedding_dim)
+                self.metrics_rnn2 = nn.LSTMCell(self.metrics_input_dim, self.metrics_embedding_dim)
+            elif cell == 'gru':
+                self.price_rnn2 = nn.GRUCell(self.price_input_dim, self.price_embedding_dim)
+                self.metrics_rnn2 = nn.GRUCell(self.metrics_input_dim, self.metrics_embedding_dim)
+            
         self.price_linear_layer = nn.Linear(self.price_embedding_dim, self.price_dim)
         self.metrics_linear_layer = nn.Linear(self.metrics_embedding_dim, self.metrics_dim)
         self.dropout_layer = nn.Dropout(dropout_rate)
@@ -48,14 +63,14 @@ class MutuallyRecursiveRNN(nn.Module):
             self.metrics_cell_state = torch.zeros(batch_size, self.metrics_embedding_dim)
         
         for i in range(seq_length):
-            if self.cell == 'rnn':
+            if self.cell == 'rnn' or self.cell == 'gru':
                 self.metrics_embedding = self.metrics_rnn(torch.cat((input_seq[:, i, :], self.price_embedding), dim=1), self.metrics_embedding)
                 self.price_embedding = self.price_rnn(torch.cat((input_seq[:, i, :], self.metrics_embedding), dim=1), self.price_embedding)
             elif self.cell == 'lstm':
                 self.metrics_hidden_state, self.metrics_cell_state = self.metrics_rnn(torch.cat((input_seq[:, i, :], self.price_hidden_state), dim=1), (self.metrics_hidden_state, self.metrics_cell_state))
                 self.price_hidden_state, self.price_cell_state = self.price_rnn(torch.cat((input_seq[:, i, :], self.metrics_hidden_state), dim=1), (self.price_hidden_state, self.price_cell_state))
         
-        if self.cell == 'rnn':
+        if self.cell == 'rnn' or self.cell == 'gru':
             metrics_pred = self.metrics_linear_layer(self.dropout_layer(self.metrics_embedding))
             price_pred = self.price_linear_layer(self.dropout_layer(self.price_embedding))
         elif self.cell == 'lstm':
