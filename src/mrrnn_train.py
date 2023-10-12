@@ -19,24 +19,24 @@ from utils.mrrnn_tools import (
 )
 from clearml import Task
 
-task = Task.init(
-    project_name="ARIMA-MRRNN",
-    task_name="ARIMA-MRRNN",
-)
-logging.basicConfig(level=logging.CRITICAL)
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-
 parser = argparse.ArgumentParser()
 parser.add_argument("--cell", default="lstm")
-parser.add_argument("--epochs", default=500)
+parser.add_argument("--epochs", default=300)
 parser.add_argument("--batch", default=64)
 parser.add_argument("--neurons", default=32, help="number of neurons")
 parser.add_argument("--double_layer", default=0, help="is double layered")
 parser.add_argument("--dropout", default=0.5, help="Dropout Rate")
-parser.add_argument("--lr", default=0.0005, help="learning rate")
+parser.add_argument("--lr", default=0.001, help="learning rate")
 parser.add_argument("--lookback", default=14)
 # parser.add_argument('--double_layer', default=0, help="is double layered")
 args = parser.parse_args()
+
+task = Task.init(
+    project_name="ARIMA-MRRNN",
+    task_name=f"ARIMA-MRRNN({args.cell}) , lookback={str(args.lookback)}",
+)
+logging.basicConfig(level=logging.CRITICAL)
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 epochs = int(args.epochs)
 batch = int(args.batch)
@@ -54,6 +54,56 @@ files_dir = os.path.join(parent_dir, f"data/VARMA_ARIMA/after_ARIMA_full/")
 #     os.makedirs(os.path.join(parent_dir, f"out/MRRNN_plot/{str(today)}"))
 #     os.makedirs(os.path.join(parent_dir, f"out/hybrid_model_error/{str(today)}"))
 #     os.makedirs(os.path.join(parent_dir, f"out/hybrid_model_plot/{str(today)}"))
+
+class EarlyStopping:
+    """Early stops the training if validation loss doesn't improve after a given patience."""
+    def __init__(self, patience=10, verbose=False, delta=0, path='checkpoint.pt', trace_func=print):
+        """
+        Args:
+            patience (int): How long to wait after last time validation loss improved.
+                            Default: 7
+            verbose (bool): If True, prints a message for each validation loss improvement. 
+                            Default: False
+            delta (float): Minimum change in the monitored quantity to qualify as an improvement.
+                            Default: 0
+            path (str): Path for the checkpoint to be saved to.
+                            Default: 'checkpoint.pt'
+            trace_func (function): trace print function.
+                            Default: print            
+        """
+        self.patience = patience
+        self.verbose = verbose
+        self.counter = 0
+        self.best_score = None
+        self.early_stop = False
+        self.val_loss_min = np.Inf
+        self.delta = delta
+        self.path = path
+        self.trace_func = trace_func
+
+    def __call__(self, val_loss, model):
+
+        score = -val_loss
+
+        if self.best_score is None:
+            self.best_score = score
+            self.save_checkpoint(val_loss, model)
+        elif score < self.best_score + self.delta:
+            self.counter += 1
+            self.trace_func(f'EarlyStopping counter: {self.counter} out of {self.patience}')
+            if self.counter >= self.patience:
+                self.early_stop = True
+        else:
+            self.best_score = score
+            self.save_checkpoint(val_loss, model)
+            self.counter = 0
+
+    def save_checkpoint(self, val_loss, model):
+        '''Saves model when validation loss decreases.'''
+        if self.verbose:
+            self.trace_func(f'Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}).  Saving model ...')
+        torch.save(model.state_dict(), self.path)
+        self.val_loss_min = val_loss
 
 # ================== preprocessing phase
 data = []
@@ -104,8 +154,12 @@ mrrnn = MutuallyRecursiveRNN(
 adam_optimizer = optim.Adam(mrrnn.parameters(), lr=float(lr))
 mse_criterion = nn.MSELoss()
 mae_criterion = nn.L1Loss()
-lr_scheduler = ReduceLROnPlateau(adam_optimizer, mode="min", factor=0.8, patience=12)
+lr_scheduler = ReduceLROnPlateau(adam_optimizer, mode="min", factor=0.5, patience=10)
 best_loss = np.inf
+early_stopping = EarlyStopping(patience=16, 
+                               verbose=True, 
+                               path=os.path.join(parent_dir,f"models/{str(today)}/MRRNN_{args.cell}_{str(neurons)}_{str(dropout)}.pt")
+                               )
 
 training_loss_list, valid_loss_list = [], []
 
@@ -184,8 +238,11 @@ for epoch in range(int(epochs)):
 
         print(
             f"Epoch {epoch+1}: training loss: {training_loss}, Val Loss: {valid_loss}"
-        )
-
+        )        
+    early_stopping(valid_loss, mrrnn)
+    if early_stopping.early_stop:
+        print("Early stopping")
+        break
     training_loss_list.append(training_loss)
     valid_loss_list.append(valid_loss)
 
