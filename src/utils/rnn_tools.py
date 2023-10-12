@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from keras.models import Sequential, load_model
-from keras.layers import Dense, Dropout, LSTM, GRU
+from keras.layers import Dense, Dropout, LSTM, GRU, SimpleRNN
 from keras.losses import MeanSquaredError
 from keras.optimizers import Adam
 from keras import regularizers, metrics
@@ -49,10 +49,11 @@ class rnn_model(object):
         elif self.cell == 'GRU':
             self.model.add(GRU(self.neurons, input_shape=x_shape))
             self.model.add(Dropout(self.dropout))
+        elif self.cell == 'RNN':
+            self.model.add(SimpleRNN(self.neurons, input_shape=x_shape))
+            self.model.add(Dropout(self.dropout))
             
-        # self.model.add(Dense(x_shape[1], 'relu',  kernel_regularizer=regularizers.l2(1e-4)))
-        self.model.add(Dense(x_shape[1], 'relu'))
-        self.model.add(Dense(y_shape, 'linear'))
+        self.model.add(Dense(y_shape, 'linear', kernel_regularizer=regularizers.l2(1e-4)))
         
         adam = Adam(learning_rate=self.lr)
         mse = MeanSquaredError()
@@ -86,6 +87,7 @@ class rnn_model(object):
         evaluate_df = pd.DataFrame(np.array([score_train[1], score_val[1], score_test[1], 
                                     score_train[2], score_val[2], score_test[2]]).reshape(-1, 6),
                         columns=["train_MSE", "val_MSE", "test_MSE", "train_MAE", "val_MAE", "test_MAE"])
+        print(evaluate_df)
         evaluate_df.to_csv(os.path.join(parent_dir, f'out/{self.cell}_error/{str(today)}/{self.cell}_{str(self.is_doubled_layer)}_{str(self.neurons)}_{str(self.dropout)}_{str(self.lr)}.csv'), index=False)
     
     def visualize_prediction_plot(self, hybrid_prediction, original, arima_prediction, timestamps, today, file):
